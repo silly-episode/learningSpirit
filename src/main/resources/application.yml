@@ -1,0 +1,60 @@
+server:
+  port: 9400
+
+spring:
+  datasource:
+    username: root
+    password: DYZ2019ZB
+    url: jdbc:mysql://127.0.0.1:3306/learningSpirit?useSSL=true&characterEncoding=UTF-8&allowMultiQuery=true&serverTimezone=UTC&zeroDateTimeBehavior=convertToNull
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    #hikari数据库连接池
+    hikari:
+      pool-name: HikariCP
+      minimum-idle: 5 #最小空闲连接数量
+      idle-timeout: 180000 #空闲连接存活最大时间，默认600000（10分钟）
+      maximum-pool-size: 100 #连接池最大连接数，默认是10
+      auto-commit: true  #此属性控制从池返回的连接的默认自动提交行为,默认值：true
+      max-lifetime: 1800000 #此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
+      connection-timeout: 30000 #数据库连接超时时间,默认30秒，即30000
+      connection-test-query: SELECT 1
+
+  #配置文件上传限制
+  servlet:
+    multipart:
+      maxFileSize: 10MB
+      maxRequestSize: 30MB
+
+  #配置RestFul
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true   #默认是关闭的
+
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java  # 监测的代码目录
+    livereload:
+      port: 35731
+
+#mp的xml和实体映射
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: com.boot.learningspirit.entity
+
+
+minio:
+  endpoint: http://127.0.0.1:9000
+  accesskey: w0E0Bt2xLWe9WusX
+  secretKey: 3gTNaOQ9XoidyI6ui9tpa9lavV2TUAE0
+
+markerhub:
+  jwt:
+    secret: 2019scaumis25710000de581c0f9eb5
+    expire: 60480000
+    header: Authorization
+
+
+
+

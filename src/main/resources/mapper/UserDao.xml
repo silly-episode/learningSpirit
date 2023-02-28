@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.UserDao">
+
+    <resultMap type="com.boot.learningspirit.entity.User" id="UserMap">
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
+        <result property="sex" column="sex" jdbcType="VARCHAR"/>
+        <result property="tel" column="tel" jdbcType="VARCHAR"/>
+        <result property="subject" column="subject" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="openId" useGeneratedKeys="true">
+        insert into learningspirit.user(user_name, role, sex, tel, subject)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userName}, #{entity.role}, #{entity.sex}, #{entity.tel}, #{entity.subject})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="openId" useGeneratedKeys="true">
+        insert into learningspirit.user(user_name, role, sex, tel, subject)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.userName}, #{entity.role}, #{entity.sex}, #{entity.tel}, #{entity.subject})
+        </foreach>
+        on duplicate key update
+        user_name = values(user_name) , role = values(role) , sex = values(sex) , tel = values(tel) , subject =
+        values(subject)
+    </insert>
+
+</mapper>
+

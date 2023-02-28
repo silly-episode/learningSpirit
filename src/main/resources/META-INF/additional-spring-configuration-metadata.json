@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "minio.endpoint",
+      "type": "java.lang.String",
+      "description": "Description for minio.endpoint."
+    },
+    {
+      "name": "minio.accesskey",
+      "type": "java.lang.String",
+      "description": "Description for minio.accesskey."
+    },
+    {
+      "name": "minio.secretKey",
+      "type": "java.lang.String",
+      "description": "Description for minio.secretKey."
+    }
+  ]
+}
