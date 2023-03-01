@@ -32,6 +32,14 @@ public class ClassController {
     @Resource
     private ClassService classService;
 
+    /**
+     * @param banJi:
+     * @param request:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 创建班级
+     * @Date: 2023/3/1 16:49
+     */
     @PostMapping("create")
     public Result createClass(
             @RequestBody BanJi banJi,
