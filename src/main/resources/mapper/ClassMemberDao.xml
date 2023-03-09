@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.ClassMemberDao">
+
+    <resultMap type="com.boot.learningspirit.entity.ClassMember" id="ClassMemberMap">
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="classId" useGeneratedKeys="true">
+        insert into learningspirit.class_member(type)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="classId" useGeneratedKeys="true">
+        insert into learningspirit.class_member(type)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type})
+        </foreach>
+        on duplicate key update
+        type = values(type)
+    </insert>
+
+</mapper>
+

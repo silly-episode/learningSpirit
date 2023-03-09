@@ -6,6 +6,10 @@ import com.boot.learningspirit.entity.BanJi;
 import com.boot.learningspirit.service.ClassService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.List;
+
+
 /**
  * 班级表(Class)表服务实现类
  *
@@ -14,6 +18,12 @@ import org.springframework.stereotype.Service;
  */
 @Service("classService")
 public class ClassServiceImpl extends ServiceImpl<ClassDao, BanJi> implements ClassService {
+    @Resource
+    private ClassDao classDao;
 
+    @Override
+    public List<BanJi> getBanJiList(String openId) {
+        return classDao.getBanJiList(openId);
+    }
 }
 

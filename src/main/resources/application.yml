@@ -52,7 +52,7 @@ minio:
 markerhub:
   jwt:
     secret: 2019scaumis25710000de581c0f9eb5
-    expire: 60480000
+    expire: 6048000000
     header: Authorization
 
 

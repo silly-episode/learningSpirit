@@ -14,7 +14,7 @@
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="classId" useGeneratedKeys="true">
-        insert into learningspirit.banJi(class_name, class_num, class_creator, class_admin, class_create_time, joined)
+        insert into learningspirit.ban_ji(class_name, class_num, class_creator, class_admin, class_create_time, joined)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.className}, #{entity.classNum}, #{entity.classCreator}, #{entity.classAdmin},
@@ -23,7 +23,7 @@
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="classId" useGeneratedKeys="true">
-        insert into learningspirit.banJi(class_name, class_num, class_creator, class_admin, class_create_time, joined)
+        insert into learningspirit.ban_ji(class_name, class_num, class_creator, class_admin, class_create_time, joined)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.className}, #{entity.classNum}, #{entity.classCreator}, #{entity.classAdmin},
@@ -33,6 +33,14 @@
         class_name = values(class_name) , class_num = values(class_num) , class_creator = values(class_creator) ,
         class_admin = values(class_admin) , class_create_time = values(class_create_time) , joined = values(joined)
     </insert>
+
+
+    <select id="getBanJiList" resultType="com.boot.learningspirit.entity.BanJi">
+        select b.*
+        from learningspirit.class_member m
+                 left join learningspirit.ban_ji b on m.class_id = b.class_id
+        where m.open_id = #{openId}
+    </select>
 
 </mapper>
 

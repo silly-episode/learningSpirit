@@ -3,6 +3,8 @@ package com.boot.learningspirit.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.boot.learningspirit.entity.BanJi;
 
+import java.util.List;
+
 /**
  * 班级表(Class)表服务接口
  *
@@ -11,5 +13,7 @@ import com.boot.learningspirit.entity.BanJi;
  */
 public interface ClassService extends IService<BanJi> {
 
+
+    List<BanJi> getBanJiList(String openId);
 }
 
