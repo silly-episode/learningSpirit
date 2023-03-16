@@ -4,6 +4,7 @@ package com.boot.learningspirit.entity;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.github.jeffreyning.mybatisplus.anno.MppMultiId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,8 +23,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class ClassMember extends Model<ClassMember> {
     @JsonSerialize(using = ToStringSerializer.class)
+    @MppMultiId
     private Long classId;
-
+    @MppMultiId
     private String openId;
 
     private String type;

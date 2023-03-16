@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class QuestionBank extends Model<QuestionBank> {
     //题目id
     @TableId(type = IdType.ASSIGN_ID)
@@ -44,7 +46,8 @@ public class QuestionBank extends Model<QuestionBank> {
     //创建时间
     private LocalDateTime questionCreateTime;
     //排序id
-    private Integer orderId;
+    @ExcelProperty("orderId")
+    private String orderId;
 
 
     /**

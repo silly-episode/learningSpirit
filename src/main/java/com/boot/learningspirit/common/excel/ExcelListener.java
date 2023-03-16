@@ -8,6 +8,7 @@ import com.boot.learningspirit.entity.QuestionBank;
 import com.boot.learningspirit.service.QuestionBankService;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,8 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
      */
     @Override
     public void invoke(QuestionBank data, AnalysisContext context) {
+        System.out.println(data.toString());
+        data.setQuestionCreateTime(LocalDateTime.now());
         cachedDataList.add(data);
         // 达到BATCH_COUNT了，需要去存储一次数据库，防止数据几万条数据在内存，容易OOM
         if (cachedDataList.size() >= BATCH_COUNT) {
@@ -79,7 +82,8 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
     public void doAfterAllAnalysed(AnalysisContext context) {
 //        //插入数据库
 //        System.out.println(cachedDataList);
-
+//        如果excel中的数据或最后一次的数据小于缓存size，则在这里插入
+        questionBankService.saveBatch(cachedDataList);
     }
 
     /**

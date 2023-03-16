@@ -1,7 +1,7 @@
 package com.boot.learningspirit.dao;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.boot.learningspirit.entity.ClassMember;
+import com.github.jeffreyning.mybatisplus.base.MppBaseMapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  * @author makejava
  * @since 2023-03-01 20:46:51
  */
-public interface ClassMemberDao extends BaseMapper<ClassMember> {
+public interface ClassMemberDao extends MppBaseMapper<ClassMember> {
 
     /**
      * 批量新增数据（MyBatis原生foreach方法）
