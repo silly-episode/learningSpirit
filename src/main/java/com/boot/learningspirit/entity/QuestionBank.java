@@ -1,6 +1,7 @@
 package com.boot.learningspirit.entity;
 
 
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
@@ -26,14 +27,19 @@ public class QuestionBank extends Model<QuestionBank> {
     @TableId(type = IdType.ASSIGN_ID)
     private Long questionId;
     //科目类型
+    @ExcelProperty("subjectKind")
     private String subjectKind;
     //题目类型，dan、duo、pan
+    @ExcelProperty("questionKind")
     private String questionKind;
     //题目内容
+    @ExcelProperty("content")
     private String content;
     //选项 A:主题 B:数学 C:括号
+    @ExcelProperty("choice")
     private String choice;
     //答案
+    @ExcelProperty("answer")
     private String answer;
     //创建时间
     private LocalDateTime questionCreateTime;
