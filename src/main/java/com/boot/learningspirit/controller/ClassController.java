@@ -52,7 +52,7 @@ public class ClassController {
      * @param request:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 创建班级
+     * @Description: 创建班级
      * @Date: 2023/3/1 16:49
      */
     @PostMapping("create")
@@ -86,7 +86,7 @@ public class ClassController {
      * @param classId:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 根据班级Id获取班级详情
+     * @Description: todo 根据班级Id获取班级详情
      * @Date: 2023/3/1 20:37
      */
     @GetMapping("getByClassId")
@@ -123,7 +123,7 @@ public class ClassController {
         classMsg.put("class", banJi);
         classMsg.put("classMate", studentName);
         classMsg.put("teacherList", teacher);
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(100);
         map.put("classInfo", classMsg);
         return Result.success(map);
     }
@@ -132,7 +132,7 @@ public class ClassController {
      * @param request:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 获取当前用户的班级列表
+     * @Description: 获取当前用户的班级列表
      * @Date: 2023/3/1 20:39
      */
     @GetMapping("getByUserId")

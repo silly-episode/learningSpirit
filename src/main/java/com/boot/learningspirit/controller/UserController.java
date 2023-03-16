@@ -49,11 +49,12 @@ public class UserController {
             // 文件名
             String originalFilename = file.getOriginalFilename();
             // 新的文件名 = 存储桶名称_时间戳.后缀名
+            assert originalFilename != null;
             String fileName = bucketName + "_" + System.currentTimeMillis() + originalFilename.substring(originalFilename.lastIndexOf("."));
             // 开始上传
             minioUtils.putObject(bucketName, file, fileName);
 
-            return Result.success();
+            return Result.success(fileName);
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error("上传失败");
