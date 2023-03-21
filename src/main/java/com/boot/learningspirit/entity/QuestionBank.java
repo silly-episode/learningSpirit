@@ -48,7 +48,10 @@ public class QuestionBank extends Model<QuestionBank> {
     //排序id
     @ExcelProperty("orderId")
     private String orderId;
-
+    //    题库名称
+    private String module;
+    // 题库id
+    private Long moduleId;
 
     /**
      * 获取主键值

@@ -27,13 +27,18 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
      */
     private static final int BATCH_COUNT = 100;
     private final QuestionBankService questionBankService;
+    private final Long moduleId;
+    private final String module;
+
     /**
      * 缓存的数据
      */
     private List<QuestionBank> cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
 
-    public ExcelListener(QuestionBankService questionBankService) {
+    public ExcelListener(QuestionBankService questionBankService, Long moduleId, String module) {
         this.questionBankService = questionBankService;
+        this.moduleId = moduleId;
+        this.module = module;
     }
 
 
@@ -62,6 +67,9 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
     public void invoke(QuestionBank data, AnalysisContext context) {
         System.out.println(data.toString());
         data.setQuestionCreateTime(LocalDateTime.now());
+        data.setModule(this.module);
+        data.setModuleId(this.moduleId);
+        System.out.println(data.toString());
         cachedDataList.add(data);
         // 达到BATCH_COUNT了，需要去存储一次数据库，防止数据几万条数据在内存，容易OOM
         if (cachedDataList.size() >= BATCH_COUNT) {

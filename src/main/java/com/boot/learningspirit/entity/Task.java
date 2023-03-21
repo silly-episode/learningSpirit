@@ -4,6 +4,7 @@ package com.boot.learningspirit.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
@@ -46,9 +47,13 @@ public class Task extends Model<Task> {
     //接收的班级id列表 ,隔开
     private String receiveClassList;
     //截至时间
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime deadline;
     //定时发布时间   为空即不定时，现在就发布
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime fixTime;
+    //    是否为草稿
+    private Boolean isDraft;
 
     /**
      * 获取主键值

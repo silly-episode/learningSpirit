@@ -139,6 +139,9 @@ public class ClassController {
     public Result getClasses(HttpServletRequest request) {
         //获取请求头token
         String token = request.getHeader("Authorization");
+        if (token.isEmpty()) {
+            return Result.error("token为空");
+        }
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
         try {

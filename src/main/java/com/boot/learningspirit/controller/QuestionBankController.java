@@ -6,8 +6,10 @@ import com.boot.learningspirit.common.excel.ExcelListener;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.QuestionBank;
 import com.boot.learningspirit.service.QuestionBankService;
+import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,9 +33,20 @@ public class QuestionBankController {
 
 
     @PostMapping("upload")
-    public Result upload(MultipartFile file) throws IOException {
-        EasyExcel.read(file.getInputStream(), QuestionBank.class, new ExcelListener(questionBankService)).sheet().doRead();
+    public Result upload(MultipartFile file, @RequestParam String name) throws IOException {
+        String module = name.substring(0, name.lastIndexOf("."));
+        Long moduleId = SnowFlakeUtil.getNextId();
+        EasyExcel.read(
+                        file.getInputStream(),
+                        QuestionBank.class,
+                        new ExcelListener(questionBankService, moduleId, module))
+                .sheet().doRead();
         return Result.success();
     }
+
+
+//    @GetMapping("")
+
+
 }
 

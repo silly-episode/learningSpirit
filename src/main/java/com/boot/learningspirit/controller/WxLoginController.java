@@ -132,7 +132,7 @@ public class WxLoginController {
      * @Description: 获取用户信息通过openId
      * @Date: 2023/2/22 9:17
      */
-    @PostMapping("index/getUser")
+    @GetMapping("index/getUser")
     public Result getUser(@RequestParam("openId") String openId) {
         System.out.println(openId);
         User user = userService.getById(openId);
