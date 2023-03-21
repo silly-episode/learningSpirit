@@ -82,10 +82,10 @@ public class QuestionBankController {
         QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
         wrapper
                 .eq("module_id", moduleId)
-                .orderByAsc("question_create_time");
+                .orderByAsc("question_id");
         questionBankService.page(pageInfo, wrapper);
         for (QuestionBank record : pageInfo.getRecords()) {
-            record.setChoiceList(Arrays.asList(record.getChoice().split(" ")));
+            record.setChoiceList(Arrays.asList(record.getChoice().split("\\s+")));
         }
 
         return Result.success(pageInfo);
