@@ -3,6 +3,7 @@ package com.boot.learningspirit.entity;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 题库(QuestionBank)表实体类
@@ -52,6 +54,9 @@ public class QuestionBank extends Model<QuestionBank> {
     private String module;
     // 题库id
     private Long moduleId;
+    //  选项的列表
+    @TableField(exist = false)
+    private List<String> choiceList;
 
     /**
      * 获取主键值

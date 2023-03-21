@@ -2,19 +2,20 @@ package com.boot.learningspirit.controller;
 
 
 import com.alibaba.excel.EasyExcel;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.excel.ExcelListener;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.QuestionBank;
 import com.boot.learningspirit.service.QuestionBankService;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 题库(QuestionBank)表控制层
@@ -44,9 +45,51 @@ public class QuestionBankController {
         return Result.success();
     }
 
+    /**
+     * @param :
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取题库列表
+     * @Date: 2023/3/21 11:30
+     */
+    @GetMapping("getBankList")
+    public Result getBankList() {
+        QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
+        wrapper
+                .select("distinct module_id , module ,question_create_time")
+                .orderByDesc("question_create_time");
+        List<QuestionBank> list = questionBankService.list(wrapper);
 
-//    @GetMapping("")
+        return Result.success(list);
+    }
 
+    /**
+     * @param pageNum:
+     * @param pageSize:
+     * @param moduleId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取某个题库的题目
+     * @Date: 2023/3/21 11:46
+     */
+    @GetMapping("getQuestionList")
+    public Result getQuestionList(
+            @RequestParam Integer pageNum,
+            @RequestParam Integer pageSize,
+            @RequestParam Long moduleId) {
+        System.out.println(moduleId);
+        Page<QuestionBank> pageInfo = new Page<>(pageNum, pageSize);
+        QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
+        wrapper
+                .eq("module_id", moduleId)
+                .orderByAsc("question_create_time");
+        questionBankService.page(pageInfo, wrapper);
+        for (QuestionBank record : pageInfo.getRecords()) {
+            record.setChoiceList(Arrays.asList(record.getChoice().split(" ")));
+        }
+
+        return Result.success(pageInfo);
+    }
 
 }
 
