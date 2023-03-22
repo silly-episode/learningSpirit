@@ -57,6 +57,10 @@ public class QuestionBank extends Model<QuestionBank> {
     //  选项的列表
     @TableField(exist = false)
     private List<String> choiceList;
+    //  题库的数量
+    @TableField(exist = false)
+    private Integer bankCount;
+
 
     /**
      * 获取主键值

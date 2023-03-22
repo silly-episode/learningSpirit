@@ -5,7 +5,7 @@
     <resultMap type="com.boot.learningspirit.entity.Task" id="TaskMap">
         <result property="taskId" column="task_id" jdbcType="INTEGER"/>
         <result property="openId" column="open_id" jdbcType="VARCHAR"/>
-        <result property="typeWork" column="type_work" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
         <result property="fileList" column="file_list" jdbcType="VARCHAR"/>
@@ -18,7 +18,7 @@
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="taskId" useGeneratedKeys="true">
-        insert into learningspirit.task(open_id, type_work, title, content, file_list, question_list, way,
+        insert into learningspirit.task(open_id, type, title, content, file_list, question_list, way,
         receive_class_list, deadline, fix_time)
         values
         <foreach collection="entities" item="entity" separator=",">
@@ -28,7 +28,7 @@
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="taskId" useGeneratedKeys="true">
-        insert into learningspirit.task(open_id, type_work, title, content, file_list, question_list, way,
+        insert into learningspirit.task(open_id, type, title, content, file_list, question_list, way,
         receive_class_list, deadline, fix_time)
         values
         <foreach collection="entities" item="entity" separator=",">
@@ -36,7 +36,7 @@
             #{entity.questionList}, #{entity.way}, #{entity.receiveClassList}, #{entity.deadline}, #{entity.fixTime})
         </foreach>
         on duplicate key update
-        open_id = values(open_id) , type_work = values(type_work) , title = values(title) , content = values(content) ,
+        open_id = values(open_id) , type = values(type) , title = values(title) , content = values(content) ,
         file_list = values(file_list) , question_list = values(question_list) , way = values(way) , receive_class_list =
         values(receive_class_list) , deadline = values(deadline) , fix_time = values(fix_time)
     </insert>

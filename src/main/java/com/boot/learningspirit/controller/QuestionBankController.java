@@ -14,8 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 题库(QuestionBank)表控制层
@@ -49,17 +49,20 @@ public class QuestionBankController {
      * @param :
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 获取题库列表
+     * @Description: 获取题库列表
      * @Date: 2023/3/21 11:30
      */
     @GetMapping("getBankList")
     public Result getBankList() {
         QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
         wrapper
-                .select("distinct module_id , module ,question_create_time")
+                .select("module_id , module ,question_create_time ,count(1) as bank_count")
+                .groupBy("module_id", "module", "question_create_time")
                 .orderByDesc("question_create_time");
         List<QuestionBank> list = questionBankService.list(wrapper);
-
+//        根据QuestionBank中的moduleId对list去重
+        list = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(()
+                -> new TreeSet<>(Comparator.comparing(QuestionBank::getModuleId))), ArrayList::new));
         return Result.success(list);
     }
 
@@ -69,7 +72,7 @@ public class QuestionBankController {
      * @param moduleId:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 获取某个题库的题目
+     * @Description: 获取某个题库的题目
      * @Date: 2023/3/21 11:46
      */
     @GetMapping("getQuestionList")
@@ -82,7 +85,7 @@ public class QuestionBankController {
         QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
         wrapper
                 .eq("module_id", moduleId)
-                .orderByAsc("question_id");
+                .orderByAsc("order_id");
         questionBankService.page(pageInfo, wrapper);
         for (QuestionBank record : pageInfo.getRecords()) {
             record.setChoiceList(Arrays.asList(record.getChoice().split("\\s+")));

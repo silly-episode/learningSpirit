@@ -65,8 +65,8 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
      */
     @Override
     public void invoke(QuestionBank data, AnalysisContext context) {
-        System.out.println(data.toString());
-        data.setQuestionCreateTime(LocalDateTime.now());
+        LocalDateTime localDateTime = LocalDateTime.now();
+        data.setQuestionCreateTime(localDateTime);
         data.setModule(this.module);
         data.setModuleId(this.moduleId);
         System.out.println(data.toString());

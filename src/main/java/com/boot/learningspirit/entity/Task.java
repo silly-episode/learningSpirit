@@ -31,7 +31,7 @@ public class Task extends Model<Task> {
     //发布人id
     private String openId;
     //任务类型：work,notice,tianbiao,jielong
-    private String typeWork;
+    private String type;
     //任务标题 测试作业标题
     private String title;
     //测试作业内容	任务内容
@@ -54,6 +54,12 @@ public class Task extends Model<Task> {
     private LocalDateTime fixTime;
     //    是否为草稿
     private Boolean isDraft;
+    //    题目是否随机
+    private Boolean random;
+    // 题库id
+    private Long moduleId;
+    // 题目数量
+    private int qNumber;
 
     /**
      * 获取主键值
@@ -61,6 +67,7 @@ public class Task extends Model<Task> {
      * @return 主键值
      */
     @Override
+
     public Serializable pkVal() {
         return this.taskId;
     }
