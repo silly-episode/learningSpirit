@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,14 +70,15 @@ public class TaskController {
         List<ClassMember> list = classMemberService.list(wrapper);
 
         QueryWrapper<Task> queryWrapper = new QueryWrapper<>();
+        List<Task> taskList = new ArrayList<>(100);
         for (ClassMember member : list) {
-            queryWrapper.
-
-                    queryWrapper.clear();
+            queryWrapper
+                    .like("receive_class_list", "%" + member.getClassId() + "%")
+                    .eq("type", type);
+            taskList.addAll(taskService.list(queryWrapper));
+            queryWrapper.clear();
         }
-
-
-        return Result.success();
+        return Result.success(taskList);
     }
 
 }

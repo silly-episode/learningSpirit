@@ -86,7 +86,7 @@ public class ClassController {
      * @param classId:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: todo 根据班级Id获取班级详情
+     * @Description: 根据班级Id获取班级详情
      * @Date: 2023/3/1 20:37
      */
     @GetMapping("getByClassId")
