@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.BanJi;
 import com.boot.learningspirit.entity.ClassMember;
+import com.boot.learningspirit.entity.MemberTaskStatus;
 import com.boot.learningspirit.entity.Task;
 import com.boot.learningspirit.service.*;
 import com.boot.learningspirit.utils.JwtUtil;
+import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,18 +62,28 @@ public class TaskController {
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
         task.setOpenId(openid);
+        LocalDateTime now = LocalDateTime.now();
 //        设置发布时间
         if (task.getFixTime().toString().isEmpty()) {
-            task.setPublishTime(LocalDateTime.now());
+            task.setPublishTime(now);
         } else {
             task.setPublishTime(task.getFixTime());
         }
+        Long taskId = SnowFlakeUtil.getNextId();
+        task.setTaskId(taskId);
         taskService.save(task);
 
         List<String> banJiList = Arrays.asList(task.getReceiveClassList().split(","));
 
-        QueryWrapper<ClassMember>
-                ClassMemberService
+        QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
+        classMemberQueryWrapper.in("class_id", banJiList);
+        List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
+
+        List<MemberTaskStatus> memberTaskStatusList = new ArrayList<>(classMemberList.size());
+        for (ClassMember classMember : classMemberList) {
+            memberTaskStatusList.add(new MemberTaskStatus(taskId, openid, now));
+        }
+        memberTaskStatusService.saveBatch(memberTaskStatusList);
         return Result.success();
     }
 

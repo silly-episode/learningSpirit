@@ -35,6 +35,12 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
     private LocalDateTime statusTime;
 
 
+    public MemberTaskStatus(Long taskId, String openId, LocalDateTime statusTime) {
+        this.taskId = taskId;
+        this.openId = openId;
+        this.statusTime = statusTime;
+    }
+
     /**
      * 获取主键值
      *

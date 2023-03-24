@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Task extends Model<Task> {
     @JsonSerialize(using = ToStringSerializer.class)
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.INPUT)
     private Long taskId;
     //发布人id
     private String openId;
