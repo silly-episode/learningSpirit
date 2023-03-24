@@ -2,6 +2,7 @@ package com.boot.learningspirit.entity;
 
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
@@ -33,9 +34,14 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
     private String status;
     //状态时间
     private LocalDateTime statusTime;
+    //班级id
+    private Long classId;
+    @TableField(exist = false)
+    //    班级已经完成的人数
+    private int countStatus;
 
 
-    public MemberTaskStatus(Long taskId, String openId, LocalDateTime statusTime) {
+    public MemberTaskStatus(Long taskId, String openId, LocalDateTime statusTime, Long classId) {
         this.taskId = taskId;
         this.openId = openId;
         this.statusTime = statusTime;

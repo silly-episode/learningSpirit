@@ -85,6 +85,8 @@ public class Task extends Model<Task> {
     //    发布者
     @TableField(exist = false)
     private String publisher;
+    @TableField(exist = false)
+    private String status;
 
     /**
      * 获取主键值

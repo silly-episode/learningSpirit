@@ -31,5 +31,6 @@ public interface MemberTaskStatusDao extends BaseMapper<MemberTaskStatus> {
      */
     int insertOrUpdateBatch(@Param("entities") List<MemberTaskStatus> entities);
 
+
 }
 

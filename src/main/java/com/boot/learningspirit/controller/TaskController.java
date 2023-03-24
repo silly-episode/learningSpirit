@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,25 +65,36 @@ public class TaskController {
         task.setOpenId(openid);
         LocalDateTime now = LocalDateTime.now();
 //        设置发布时间
-        if (task.getFixTime().toString().isEmpty()) {
+        System.out.println(task.getFixTime());
+        System.out.println(task.getFixTime() == null);
+        if (task.getFixTime() == null) {
             task.setPublishTime(now);
         } else {
             task.setPublishTime(task.getFixTime());
         }
+
+//        存入task
         Long taskId = SnowFlakeUtil.getNextId();
         task.setTaskId(taskId);
         taskService.save(task);
 
+//        获取班级Id的list
         List<String> banJiList = Arrays.asList(task.getReceiveClassList().split(","));
 
+//        查询班级下的成员id的list
         QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
         classMemberQueryWrapper.in("class_id", banJiList);
         List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
 
+        System.out.println(classMemberList.toString());
+
+//        组成最后的要添加的数据
         List<MemberTaskStatus> memberTaskStatusList = new ArrayList<>(classMemberList.size());
         for (ClassMember classMember : classMemberList) {
-            memberTaskStatusList.add(new MemberTaskStatus(taskId, openid, now));
+            memberTaskStatusList.add(new MemberTaskStatus(taskId, classMember.getOpenId(), now, classMember.getClassId()));
         }
+
+        System.out.println(memberTaskStatusList.toString());
         memberTaskStatusService.saveBatch(memberTaskStatusList);
         return Result.success();
     }
@@ -98,7 +110,7 @@ public class TaskController {
     @GetMapping("getTaskList")
     public Result getTaskList(@RequestParam String type,
                               HttpServletRequest request) {
-
+        String title = null;
         //获取请求头token
         String token = request.getHeader("Authorization");
         //从token中获取openid
@@ -115,12 +127,14 @@ public class TaskController {
         for (ClassMember member : list) {
             if ("affair".equals(type)) {
                 queryWrapper
+                        .like(null != title, "%" + title + "%", title)
                         .like("receive_class_list", "%" + member.getClassId() + "%")
                         .and(e -> e.eq("type", "notice")
                                 .or().eq("type", "jielong")
                                 .or().eq("type", "tianbiao"));
             } else {
                 queryWrapper
+                        .like(null != title, "%" + title + "%", title)
                         .like("receive_class_list", "%" + member.getClassId() + "%")
                         .and(e -> e.eq("type", "work")
                                 .or().eq("type", "exam"));
@@ -133,6 +147,26 @@ public class TaskController {
         QueryWrapper<BanJi> banJiWrapper = new QueryWrapper<>();
         queryWrapper.select("class_id,class_name,joined").in("class_id", list);
         List<BanJi> banJiList = classService.list(banJiWrapper);
+        System.out.println(banJiList.toString());
+
+
+        QueryWrapper<MemberTaskStatus> memberTaskStatusQueryWrapper = new QueryWrapper<>();
+        //      班级任务完成情况
+        System.out.println(list);
+        memberTaskStatusQueryWrapper
+                .select("class_id,count(status) as count_status")
+                .eq("status", "已完成")
+                .in("class_id", list)
+                .groupBy("class_id");
+        List<MemberTaskStatus> statusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
+        System.out.println(statusList.toString());
+
+        //        个人完成情况
+        memberTaskStatusQueryWrapper.clear();
+        memberTaskStatusQueryWrapper.eq("open_id", openid);
+        List<MemberTaskStatus> personStatusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
+
+        DecimalFormat df = new DecimalFormat("#.00");
 //处理数据
         for (Task task : taskList) {
 //            添加班级相关信息
@@ -145,9 +179,31 @@ public class TaskController {
             }
             //            添加发布人相关信息
             task.setPublisher(userService.getById(task.getOpenId()).getUserName());
-//            添加完成情况相关信息
+//            添加班级完成情况相关信息
+            for (MemberTaskStatus memberTaskStatus : statusList) {
+                if (task.getClassId().equals(memberTaskStatus.getClassId())) {
+                    task.setCompleteNum(memberTaskStatus.getCountStatus());
+                    System.out.println(task.getJoined());
+                    System.out.println(memberTaskStatus.getCountStatus());
+                    System.out.println(df.format(memberTaskStatus.getCountStatus() * 1.0 / task.getJoined()));
+                    task.setIncompleteNum(task.getJoined() - memberTaskStatus.getCountStatus());
+                    task.setCompletionRate(
+                            df.format(memberTaskStatus.getCountStatus() * 1.0 / task.getJoined()));
+                }
+            }
+//            如果一个人都没完成则特殊处理
+            if (statusList.size() == 0) {
+                task.setCompleteNum(0);
+                task.setIncompleteNum(task.getJoined());
+                task.setCompletionRate("0.00");
+            }
 
-
+//            添加个人完成情况
+            for (MemberTaskStatus memberTaskStatus : personStatusList) {
+                if (memberTaskStatus.getTaskId().equals(task.getTaskId())) {
+                    task.setStatus(memberTaskStatus.getStatus());
+                }
+            }
         }
         return Result.success(taskList);
     }
