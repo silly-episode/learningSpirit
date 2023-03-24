@@ -30,7 +30,8 @@ public class Task extends Model<Task> {
     private Long taskId;
     //发布人id
     private String openId;
-    //任务类型：work,notice,tianbiao,jielong
+    //班级事务(affair)：notice、jielong、tianbiao
+    //学习任务（learn）：work、exam
     private String type;
     //任务标题 测试作业标题
     private String title;

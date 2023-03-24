@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * 任务表(Task)表控制层
  *
@@ -45,7 +46,7 @@ public class TaskController {
     @PostMapping("create")
     public Result create(
             @RequestBody Task task,
-            HttpServletRequest request) throws Exception {
+            HttpServletRequest request) {
         //获取请求头token
         String token = request.getHeader("Authorization");
         //从token中获取openid
@@ -69,12 +70,24 @@ public class TaskController {
         wrapper.select("class_id").eq("open_id", openid);
         List<ClassMember> list = classMemberService.list(wrapper);
 
+        QueryWrapper<Task> orWrapper = new QueryWrapper<>();
+//        拼接or查询
+        if ("affair".equals(type)) {
+            orWrapper.eq("type", "notice")
+                    .or().eq("type", "jielong")
+                    .or().eq("type", "tianbiao");
+        } else {
+            orWrapper.eq("type", "work")
+                    .or().eq("type", "exam");
+        }
+
+//        查询具体任务列表
         QueryWrapper<Task> queryWrapper = new QueryWrapper<>();
         List<Task> taskList = new ArrayList<>(100);
         for (ClassMember member : list) {
             queryWrapper
                     .like("receive_class_list", "%" + member.getClassId() + "%")
-                    .eq("type", type);
+                    .and(e -> e = orWrapper);
             taskList.addAll(taskService.list(queryWrapper));
             queryWrapper.clear();
         }
