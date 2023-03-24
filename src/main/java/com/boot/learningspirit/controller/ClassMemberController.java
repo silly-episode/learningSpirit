@@ -2,8 +2,10 @@ package com.boot.learningspirit.controller;
 
 
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.entity.BanJi;
 import com.boot.learningspirit.entity.ClassMember;
 import com.boot.learningspirit.service.ClassMemberService;
+import com.boot.learningspirit.service.ClassService;
 import com.boot.learningspirit.utils.JwtUtil;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +31,8 @@ public class ClassMemberController {
     private ClassMemberService classMemberService;
     @Resource
     JwtUtil jwtUtil;
+    @Resource
+    private ClassService classService;
 
 
     @PostMapping("joinClass")
@@ -38,6 +42,12 @@ public class ClassMemberController {
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
         classMember.setOpenId(openid);
+//        如果班级已满则不能加入班级
+        BanJi banJi = classService.getById(classMember.getClassId());
+        if (banJi.getJoined().equals(banJi.getClassNum())) {
+            return Result.error(4061, "班级人数已满");
+        }
+//        加入班级
         if (classMemberService.save(classMember)) {
             return Result.success("加入班级成功");
         } else {

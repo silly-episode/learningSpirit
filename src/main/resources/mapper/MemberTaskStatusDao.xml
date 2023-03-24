@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.MemberTaskStatusDao">
+
+    <resultMap type="com.boot.learningspirit.entity.MemberTaskStatus" id="MemberTaskStatusMap">
+        <result property="statusId" column="status_id" jdbcType="INTEGER"/>
+        <result property="taskId" column="task_id" jdbcType="INTEGER"/>
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="statusTime" column="status_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="statusId" useGeneratedKeys="true">
+        insert into learningspirit.member_task_status(task_id, open_id, status, status_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.taskId}, #{entity.openId}, #{entity.status}, #{entity.statusTime})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="statusId" useGeneratedKeys="true">
+        insert into learningspirit.member_task_status(task_id, open_id, status, status_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.taskId}, #{entity.openId}, #{entity.status}, #{entity.statusTime})
+        </foreach>
+        on duplicate key update
+        task_id = values(task_id) , open_id = values(open_id) , status = values(status) , status_time =
+        values(status_time)
+    </insert>
+
+</mapper>
+

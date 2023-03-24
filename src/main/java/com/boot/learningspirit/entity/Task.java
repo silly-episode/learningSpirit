@@ -2,6 +2,7 @@ package com.boot.learningspirit.entity;
 
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -61,6 +62,29 @@ public class Task extends Model<Task> {
     private Long moduleId;
     // 题目数量
     private int qNumber;
+    //    发布时间
+    private LocalDateTime publishTime;
+    //    已完成人数
+    @TableField(exist = false)
+    private int completeNum;
+    //    未完成人数
+    @TableField(exist = false)
+    private int incompleteNum;
+    //    班级加入
+    @TableField(exist = false)
+    private int joined;
+    // 完成比率
+    @TableField(exist = false)
+    private String completionRate;
+    //    实际班级名称
+    @TableField(exist = false)
+    private String className;
+    // 实际班级id
+    @TableField(exist = false)
+    private Long classId;
+    //    发布者
+    @TableField(exist = false)
+    private String publisher;
 
     /**
      * 获取主键值
