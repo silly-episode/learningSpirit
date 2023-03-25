@@ -66,8 +66,7 @@ public class TaskController {
         task.setOpenId(openid);
         LocalDateTime now = LocalDateTime.now();
 //        设置发布时间
-        System.out.println(task.getFixTime());
-        System.out.println(task.getFixTime() == null);
+
         if (task.getFixTime() == null) {
             task.setPublishTime(now);
         } else {
@@ -87,7 +86,6 @@ public class TaskController {
         classMemberQueryWrapper.in("class_id", banJiList);
         List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
 
-        System.out.println(classMemberList.toString());
 
 //        组成最后的要添加的数据
         List<MemberTaskStatus> memberTaskStatusList = new ArrayList<>(classMemberList.size());
@@ -126,8 +124,7 @@ public class TaskController {
         if ("全部".equals(status)) {
             status = null;
         }
-        System.out.println("============");
-        System.out.println(status);
+
 
         //查询该用户加入的班级id
         QueryWrapper<ClassMember> wrapper = new QueryWrapper<>();
@@ -198,6 +195,7 @@ public class TaskController {
 
 //      处理数据
         DecimalFormat df = new DecimalFormat("#.00");
+
         for (Task task : taskList) {
 //            添加班级相关信息
             for (BanJi banJi : banJiList) {
@@ -213,9 +211,6 @@ public class TaskController {
             for (MemberTaskStatus memberTaskStatus : statusList) {
                 if (task.getTaskId().equals(memberTaskStatus.getTaskId()) && task.getClassId().equals(memberTaskStatus.getClassId())) {
                     task.setCompleteNum(memberTaskStatus.getCountStatus());
-                    System.out.println(task.getJoined());
-                    System.out.println(memberTaskStatus.getCountStatus());
-                    System.out.println(df.format(memberTaskStatus.getCountStatus() * 1.0 / task.getJoined()));
                     task.setIncompleteNum(task.getJoined() - memberTaskStatus.getCountStatus());
                     task.setCompletionRate("0" +
                             df.format(memberTaskStatus.getCountStatus() * 1.0 / task.getJoined()));
@@ -234,6 +229,14 @@ public class TaskController {
                 }
             }
         }
+//        删除status为null的任务
+        for (int i = 0; i < taskList.size(); i++) {
+            if (taskList.get(i).getStatus() == null) {
+                taskList.remove(i);
+                i--;
+            }
+        }
+
         return Result.success(taskList);
     }
 

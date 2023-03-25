@@ -47,6 +47,9 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
     @TableField(exist = false)
     //    班级已经完成的人数
     private int countStatus;
+    @TableField(exist = false)
+    //    用户名
+    private String userName;
 
 
     public MemberTaskStatus(Long taskId, String openId, LocalDateTime statusTime, Long classId) {

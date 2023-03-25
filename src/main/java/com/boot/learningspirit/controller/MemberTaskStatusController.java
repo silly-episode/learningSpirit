@@ -1,9 +1,12 @@
 package com.boot.learningspirit.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.entity.ClassMember;
 import com.boot.learningspirit.entity.MemberTaskStatus;
 import com.boot.learningspirit.entity.Task;
+import com.boot.learningspirit.service.ClassMemberService;
 import com.boot.learningspirit.service.MemberTaskStatusService;
 import com.boot.learningspirit.service.TaskService;
 import com.boot.learningspirit.service.UserService;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +44,8 @@ public class MemberTaskStatusController {
     private TaskService taskService;
     @Resource
     private UserService userService;
+    @Resource
+    private ClassMemberService classMemberService;
 
 
     @GetMapping("getDetailTask")
@@ -54,20 +60,32 @@ public class MemberTaskStatusController {
         Task task = taskService.getById(taskId);
         task.setPublisher(userService.getById(openid).getUserName());
 
+//        获取所有的成员的完成情况
         Map<String, Object> map = new HashMap<>(1);
         map.put("task_id", taskId);
         List<MemberTaskStatus> statusList = memberTaskStatusService.listByMap(map);
 
+
+        List<String> noList = new ArrayList<>(100);
+        List<MemberTaskStatus> yesList = new ArrayList<>(100);
+        QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
+        String type = null;
         for (MemberTaskStatus status : statusList) {
+            status.setUserName(userService.getById(status.getOpenId()).getUserName());
             if ("已完成".equals(status.getStatus())) {
-
+                yesList.add(status);
             } else {
-
+                queryWrapper.clear();
+                queryWrapper.select("type").eq("open_id", status.getOpenId());
+                type = classMemberService.getOne(queryWrapper).getType();
+                if ("student".equals(type)) {
+                    noList.add(status.getUserName());
+                }
             }
         }
-
-
-        return Result.success();
+        task.setCompletedList(yesList);
+        task.setIncompletedList(noList);
+        return Result.success(task);
     }
 
 }
