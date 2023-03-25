@@ -95,6 +95,8 @@ public class Task extends Model<Task> {
     //    已经完成的人的信息
     @TableField(exist = false)
     private List<MemberTaskStatus> completedList;
+    @TableField(exist = false)
+    private MemberTaskStatus memberTaskStatus;
 
     /**
      * 获取主键值
