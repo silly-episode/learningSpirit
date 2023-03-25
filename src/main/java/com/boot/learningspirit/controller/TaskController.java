@@ -119,7 +119,11 @@ public class TaskController {
         QueryWrapper<ClassMember> wrapper = new QueryWrapper<>();
         wrapper.select("class_id").eq("open_id", openid);
         List<ClassMember> list = classMemberService.list(wrapper);
-
+//        得到classId的数据集合
+        List<Long> classIdList = new ArrayList<>();
+        for (ClassMember member : list) {
+            classIdList.add(member.getClassId());
+        }
 //        查询具体任务列表
         QueryWrapper<Task> queryWrapper = new QueryWrapper<>();
         List<Task> taskList = new ArrayList<>(100);
@@ -144,19 +148,22 @@ public class TaskController {
         }
 
 //        班级信息
+
         QueryWrapper<BanJi> banJiWrapper = new QueryWrapper<>();
-        queryWrapper.select("class_id,class_name,joined").in("class_id", list);
+        banJiWrapper.select("class_id,class_name,joined").in("class_id", classIdList);
         List<BanJi> banJiList = classService.list(banJiWrapper);
+
         System.out.println(banJiList.toString());
 
 
         QueryWrapper<MemberTaskStatus> memberTaskStatusQueryWrapper = new QueryWrapper<>();
         //      班级任务完成情况
-        System.out.println(list);
+        System.out.println(list.toString());
+
         memberTaskStatusQueryWrapper
                 .select("class_id,count(status) as count_status")
                 .eq("status", "已完成")
-                .in("class_id", list)
+                .in("class_id", classIdList)
                 .groupBy("class_id");
         List<MemberTaskStatus> statusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
         System.out.println(statusList.toString());
@@ -187,7 +194,7 @@ public class TaskController {
                     System.out.println(memberTaskStatus.getCountStatus());
                     System.out.println(df.format(memberTaskStatus.getCountStatus() * 1.0 / task.getJoined()));
                     task.setIncompleteNum(task.getJoined() - memberTaskStatus.getCountStatus());
-                    task.setCompletionRate(
+                    task.setCompletionRate("0" +
                             df.format(memberTaskStatus.getCountStatus() * 1.0 / task.getJoined()));
                 }
             }
