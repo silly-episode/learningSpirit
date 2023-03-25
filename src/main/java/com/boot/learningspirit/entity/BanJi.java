@@ -40,6 +40,8 @@ public class BanJi extends Model<BanJi> {
     private LocalDateTime classCreateTime;
     //已经加入班级人数
     private Integer joined;
+    //    非学生人数
+    private Integer teacherCount;
 
 
     /**

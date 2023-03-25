@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 任务表(Task)表实体类
@@ -85,8 +86,15 @@ public class Task extends Model<Task> {
     //    发布者
     @TableField(exist = false)
     private String publisher;
+    //    详细状态
     @TableField(exist = false)
     private String status;
+    //    未完成的人的姓名
+    @TableField(exist = false)
+    private List<String> incompletedList;
+    //    已经完成的人的信息
+    @TableField(exist = false)
+    private List<MemberTaskStatus> completedList;
 
     /**
      * 获取主键值

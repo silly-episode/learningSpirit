@@ -49,6 +49,11 @@ public class ClassMemberController {
         }
 //        加入班级
         if (classMemberService.save(classMember)) {
+            if (!"student".equals(classMember.getType())) {
+                banJi.setTeacherCount(banJi.getTeacherCount() + 1);
+            }
+            banJi.setJoined(banJi.getJoined() + 1);
+            classService.updateById(banJi);
             return Result.success("加入班级成功");
         } else {
             return Result.error("加入班级失败");

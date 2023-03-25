@@ -36,6 +36,14 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
     private LocalDateTime statusTime;
     //班级id
     private Long classId;
+    //    学生留言
+    private String msg;
+    //    老师评语
+    private String remark;
+    //    评级
+    private int rate;
+    //    文件列表,逗号区分
+    private String fileList;
     @TableField(exist = false)
     //    班级已经完成的人数
     private int countStatus;
@@ -45,6 +53,7 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
         this.taskId = taskId;
         this.openId = openId;
         this.statusTime = statusTime;
+        this.classId = classId;
     }
 
     /**

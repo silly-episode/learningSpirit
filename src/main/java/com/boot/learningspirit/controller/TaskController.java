@@ -11,6 +11,7 @@ import com.boot.learningspirit.service.*;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -91,10 +92,12 @@ public class TaskController {
 //        组成最后的要添加的数据
         List<MemberTaskStatus> memberTaskStatusList = new ArrayList<>(classMemberList.size());
         for (ClassMember classMember : classMemberList) {
-            memberTaskStatusList.add(new MemberTaskStatus(taskId, classMember.getOpenId(), now, classMember.getClassId()));
+            memberTaskStatusList.add(
+                    new MemberTaskStatus(
+                            taskId, classMember.getOpenId(),
+                            now, classMember.getClassId()));
         }
 
-        System.out.println(memberTaskStatusList.toString());
         memberTaskStatusService.saveBatch(memberTaskStatusList);
         return Result.success();
     }
@@ -109,12 +112,23 @@ public class TaskController {
 
     @GetMapping("getTaskList")
     public Result getTaskList(@RequestParam String type,
+                              @RequestParam String title,
+                              @RequestParam String status,
+                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime beginDate,
+                              @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
                               HttpServletRequest request) {
-        String title = null;
         //获取请求头token
         String token = request.getHeader("Authorization");
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
+
+        //对参数进行处理
+        if ("全部".equals(status)) {
+            status = null;
+        }
+        System.out.println("============");
+        System.out.println(status);
+
         //查询该用户加入的班级id
         QueryWrapper<ClassMember> wrapper = new QueryWrapper<>();
         wrapper.select("class_id").eq("open_id", openid);
@@ -124,6 +138,10 @@ public class TaskController {
         for (ClassMember member : list) {
             classIdList.add(member.getClassId());
         }
+
+
+
+
 //        查询具体任务列表
         QueryWrapper<Task> queryWrapper = new QueryWrapper<>();
         List<Task> taskList = new ArrayList<>(100);
@@ -131,15 +149,21 @@ public class TaskController {
         for (ClassMember member : list) {
             if ("affair".equals(type)) {
                 queryWrapper
-                        .like(null != title, "%" + title + "%", title)
-                        .like("receive_class_list", "%" + member.getClassId() + "%")
+                        .like(null != title, "title", title)
+                        .eq("is_draft", false)
+                        .like("receive_class_list", String.valueOf(member.getClassId()))
+                        .le(null != endDate, "publish_time", endDate)
+                        .ge(null != beginDate, "publish_time", beginDate)
                         .and(e -> e.eq("type", "notice")
                                 .or().eq("type", "jielong")
                                 .or().eq("type", "tianbiao"));
             } else {
                 queryWrapper
-                        .like(null != title, "%" + title + "%", title)
-                        .like("receive_class_list", "%" + member.getClassId() + "%")
+                        .like(null != title, "title", title)
+                        .eq("is_draft", false)
+                        .like("receive_class_list", String.valueOf(member.getClassId()))
+                        .le(null != endDate, "publish_time", endDate)
+                        .ge(null != beginDate, "publish_time", beginDate)
                         .and(e -> e.eq("type", "work")
                                 .or().eq("type", "exam"));
             }
@@ -147,48 +171,47 @@ public class TaskController {
             queryWrapper.clear();
         }
 
+
 //        班级信息
-
         QueryWrapper<BanJi> banJiWrapper = new QueryWrapper<>();
-        banJiWrapper.select("class_id,class_name,joined").in("class_id", classIdList);
+        banJiWrapper.select("class_id,class_name,joined,teacher_count").in("class_id", classIdList);
         List<BanJi> banJiList = classService.list(banJiWrapper);
-
-        System.out.println(banJiList.toString());
 
 
         QueryWrapper<MemberTaskStatus> memberTaskStatusQueryWrapper = new QueryWrapper<>();
         //      班级任务完成情况
-        System.out.println(list.toString());
-
         memberTaskStatusQueryWrapper
-                .select("class_id,count(status) as count_status")
+                .select("task_id,class_id,count(status) as count_status")
                 .eq("status", "已完成")
                 .in("class_id", classIdList)
-                .groupBy("class_id");
+                .groupBy("class_id", "task_id");
         List<MemberTaskStatus> statusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
-        System.out.println(statusList.toString());
+
 
         //        个人完成情况
         memberTaskStatusQueryWrapper.clear();
-        memberTaskStatusQueryWrapper.eq("open_id", openid);
+        memberTaskStatusQueryWrapper
+                .eq("open_id", openid)
+                .eq(status != null, "status", status);
         List<MemberTaskStatus> personStatusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
 
+
+//      处理数据
         DecimalFormat df = new DecimalFormat("#.00");
-//处理数据
         for (Task task : taskList) {
 //            添加班级相关信息
             for (BanJi banJi : banJiList) {
                 if (task.getReceiveClassList().contains(String.valueOf(banJi.getClassId()))) {
                     task.setClassId(banJi.getClassId());
                     task.setClassName(banJi.getClassName());
-                    task.setJoined(banJi.getJoined());
+                    task.setJoined(banJi.getJoined() - banJi.getTeacherCount());
                 }
             }
-            //            添加发布人相关信息
+//            添加发布人相关信息
             task.setPublisher(userService.getById(task.getOpenId()).getUserName());
 //            添加班级完成情况相关信息
             for (MemberTaskStatus memberTaskStatus : statusList) {
-                if (task.getClassId().equals(memberTaskStatus.getClassId())) {
+                if (task.getTaskId().equals(memberTaskStatus.getTaskId()) && task.getClassId().equals(memberTaskStatus.getClassId())) {
                     task.setCompleteNum(memberTaskStatus.getCountStatus());
                     System.out.println(task.getJoined());
                     System.out.println(memberTaskStatus.getCountStatus());
@@ -199,13 +222,12 @@ public class TaskController {
                 }
             }
 //            如果一个人都没完成则特殊处理
-            if (statusList.size() == 0) {
+            if (task.getCompleteNum() == 0 && task.getIncompleteNum() == 0) {
                 task.setCompleteNum(0);
                 task.setIncompleteNum(task.getJoined());
                 task.setCompletionRate("0.00");
             }
-
-//            添加个人完成情况
+//            添加个人完成情况信息
             for (MemberTaskStatus memberTaskStatus : personStatusList) {
                 if (memberTaskStatus.getTaskId().equals(task.getTaskId())) {
                     task.setStatus(memberTaskStatus.getStatus());

@@ -5,10 +5,12 @@ import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.utils.MinIOUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 
 
 /**
@@ -27,6 +29,12 @@ public class UserController {
     @GetMapping("/")
     public String test() {
         return "Test";
+    }
+
+    @GetMapping("test")
+    public Result test(@RequestParam LocalDateTime time) {
+        System.out.println(time);
+        return Result.success();
     }
 
     /**
