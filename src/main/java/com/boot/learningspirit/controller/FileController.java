@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 
 
@@ -20,7 +24,7 @@ import java.time.LocalDateTime;
  * @since 2023-02-01 11:31:13
  */
 @RestController
-public class UserController {
+public class FileController {
 
 
     @Resource
@@ -46,8 +50,6 @@ public class UserController {
      */
     @PostMapping("upload")
     public Result upload(MultipartFile file) {
-
-
         // 判断上传文件是否为空
         if (null == file || 0 == file.getSize()) {
             return Result.error(4010, "文件为空");
@@ -61,20 +63,50 @@ public class UserController {
             String fileName = bucketName + "_" + System.currentTimeMillis() + originalFilename.substring(originalFilename.lastIndexOf("."));
             // 开始上传
             minioUtils.putObject(bucketName, file, fileName);
-
             return Result.success(fileName);
         } catch (Exception e) {
             e.printStackTrace();
             return Result.error("上传失败");
-
         }
     }
 
 
-//    @PostMapping
-//    public Result login() {
-//
-//    }
+    @GetMapping("download")
+    public void userImage(@RequestParam String filePath, @RequestParam String type, HttpServletResponse response) throws IOException {
+        ServletOutputStream outputStream = null;
+        InputStream inputStream = null;
+        try {
+            //输出流，通过输出流将文件写回浏览器
+            outputStream = response.getOutputStream();
+
+            if ("img".equals(type)) {
+                response.setContentType("image/jpeg");
+            } else if ("vedio".equals(type)) {
+
+            }
+
+            //从MinIo中获取用户头像
+            String bucketName = "spirit";
+            inputStream = minioUtils.getObject(bucketName, filePath);
+
+            if (inputStream != null) {
+                int len;
+                byte[] bytes = new byte[1024 * 4];
+                while ((len = inputStream.read(bytes)) != -1) {
+                    outputStream.write(bytes, 0, len);
+                    outputStream.flush();
+                }
+            }
+        } catch (IOException ignored) {
+        } finally {
+            //关闭资源
+            assert outputStream != null;
+            outputStream.close();
+            assert inputStream != null;
+            inputStream.close();
+        }
+
+    }
 
 
 }

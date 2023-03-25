@@ -47,9 +47,16 @@ public class MemberTaskStatusController {
     @Resource
     private ClassMemberService classMemberService;
 
-
-    @GetMapping("getDetailTask")
-    public Result getDetailTask(@RequestParam Long taskId, HttpServletRequest request) {
+    /**
+     * @param taskId:
+     * @param request:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 老师详情任务
+     * @Date: 2023/3/25 20:13
+     */
+    @GetMapping("getTeacherDetailTask")
+    public Result getTeacherDetailTask(@RequestParam Long taskId, HttpServletRequest request) {
 
         //获取请求头token
         String token = request.getHeader("Authorization");
@@ -58,7 +65,56 @@ public class MemberTaskStatusController {
 
 //        获取任务的信息
         Task task = taskService.getById(taskId);
-        task.setPublisher(userService.getById(openid).getUserName());
+        task.setPublisher(userService.getById(task.getOpenId()).getUserName());
+
+//        获取所有的成员的完成情况
+        Map<String, Object> map = new HashMap<>(1);
+        map.put("task_id", taskId);
+        List<MemberTaskStatus> statusList = memberTaskStatusService.listByMap(map);
+
+
+        List<String> noList = new ArrayList<>(100);
+        List<MemberTaskStatus> yesList = new ArrayList<>(100);
+        QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
+        String type = null;
+        for (MemberTaskStatus status : statusList) {
+            status.setUserName(userService.getById(status.getOpenId()).getUserName());
+            if ("已完成".equals(status.getStatus())) {
+                yesList.add(status);
+            } else {
+                queryWrapper.clear();
+                queryWrapper.select("type").eq("open_id", status.getOpenId());
+                type = classMemberService.getOne(queryWrapper).getType();
+                if ("student".equals(type)) {
+                    noList.add(status.getUserName());
+                }
+            }
+        }
+        task.setCompletedList(yesList);
+        task.setIncompletedList(noList);
+        return Result.success(task);
+    }
+
+
+    /**
+     * @param taskId:
+     * @param request:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 学生详情任务
+     * @Date: 2023/3/25 20:13
+     */
+    @GetMapping("getStudentDetailTask")
+    public Result getStudentDetailTask(@RequestParam Long taskId, HttpServletRequest request) {
+
+        //获取请求头token
+        String token = request.getHeader("Authorization");
+        //从token中获取openid
+        String openid = jwtUtil.getOpenidFromToken(token);
+
+//        获取任务的信息
+        Task task = taskService.getById(taskId);
+        task.setPublisher(userService.getById(task.getOpenId()).getUserName());
 
 //        获取所有的成员的完成情况
         Map<String, Object> map = new HashMap<>(1);
