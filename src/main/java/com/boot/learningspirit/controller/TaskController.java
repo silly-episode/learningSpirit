@@ -105,10 +105,25 @@ public class TaskController {
     }
 
 
+    /**
+     * @param taskId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 删除草稿
+     * @Date: 2023/3/26 13:10
+     */
     @GetMapping("delete")
     public Result delete(@RequestParam Long taskId) {
-
-        return Result.success();
+        Task task = taskService.getById(taskId);
+        if (!task.getIsDraft()) {
+            return Result.error("该任务不是草稿，不能删除");
+        } else {
+            if (taskService.removeById(taskId)) {
+                return Result.success("删除草稿成功");
+            } else {
+                return Result.error("删除草稿失败");
+            }
+        }
     }
 
 

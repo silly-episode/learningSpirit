@@ -32,7 +32,14 @@ public class QuestionBankController {
     @Resource
     private QuestionBankService questionBankService;
 
-
+    /**
+     * @param file:
+     * @param name:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: 上传题库
+     * @Date: 2023/3/26 13:15
+     */
     @PostMapping("upload")
     public Result upload(MultipartFile file, @RequestParam String name) throws IOException {
         String module = name.substring(0, name.lastIndexOf("."));
@@ -90,8 +97,46 @@ public class QuestionBankController {
         for (QuestionBank record : pageInfo.getRecords()) {
             record.setChoiceList(Arrays.asList(record.getChoice().split("\\s+")));
         }
-
         return Result.success(pageInfo);
+    }
+
+    /**
+     * @param moduleId:
+     * @param random:
+     * @param qNumber:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取考试题目
+     * @Date: 2023/3/26 14:49
+     */
+    @GetMapping("getExamQuestionList")
+    public Result getExamQuestionList(@RequestParam Long moduleId,
+                                      @RequestParam Boolean random,
+                                      @RequestParam Integer qNumber) {
+        Set<Integer> set = new HashSet<>(qNumber);
+        if (random) {
+            Random ran = new Random();
+            Long bankMaxCount = questionBankService.count(
+                    new QueryWrapper<QuestionBank>()
+                            .eq("module_id", moduleId));
+            while (set.size() != qNumber) {
+                set.add(ran.nextInt(Math.toIntExact(bankMaxCount)) + 1);
+            }
+            System.out.println(set.toString());
+            System.out.println(bankMaxCount);
+        } else {
+            int i = 1;
+            while (set.size() != qNumber) {
+                set.add(i++);
+            }
+        }
+        QueryWrapper<QuestionBank> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("module_id", moduleId)
+                .in("order_id", set)
+                .orderByAsc("order_id");
+        List<QuestionBank> list = questionBankService.list(queryWrapper);
+        return Result.success(list);
     }
 
 }

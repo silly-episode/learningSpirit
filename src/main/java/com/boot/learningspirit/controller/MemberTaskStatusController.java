@@ -161,7 +161,8 @@ public class MemberTaskStatusController {
                     .set("file_list", map.get("fileList"))
                     .set("msg", map.get("msg"));
         }
-
+        System.out.println("===============");
+        System.out.println(map.get("msg"));
 //    存入数据库
         if (memberTaskStatusService.update(updateWrapper)) {
             return Result.success("录入成绩成功");
@@ -185,7 +186,7 @@ public class MemberTaskStatusController {
                 .eq("status_id", map.get("statusId"))
                 .set("rate", map.get("rate"))
                 .set("remark", map.get("remark"))
-                .set("mark_status", map.get("mark_status"));
+                .set("mark_status", true);
         //    存入数据库
         if (memberTaskStatusService.update(updateWrapper)) {
             return Result.success("批改录入成功");
