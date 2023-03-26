@@ -77,6 +77,10 @@ public class TaskController {
         Long taskId = SnowFlakeUtil.getNextId();
         task.setTaskId(taskId);
         taskService.save(task);
+        if (task.getIsDraft()) {
+            return Result.success("保存草稿成功");
+        }
+
 
 //        获取班级Id的list
         List<String> banJiList = Arrays.asList(task.getReceiveClassList().split(","));
@@ -112,6 +116,7 @@ public class TaskController {
     public Result getTaskList(@RequestParam String type,
                               @RequestParam String title,
                               @RequestParam String status,
+                              @RequestParam Boolean isDraft,
                               @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime beginDate,
                               @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
                               HttpServletRequest request) {
@@ -146,7 +151,7 @@ public class TaskController {
         for (ClassMember member : list) {
             queryWrapper
                     .like(null != title, "title", title)
-                    .eq("is_draft", false)
+                    .eq("is_draft", isDraft)
                     .like("receive_class_list", String.valueOf(member.getClassId()))
                     .le(null != endDate, "publish_time", endDate)
                     .ge(null != beginDate, "publish_time", beginDate);

@@ -100,7 +100,7 @@ public class MemberTaskStatusController {
      * @param request:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 学生详情任务
+     * @Description: 学生详情任务
      * @Date: 2023/3/25 20:13
      */
     @GetMapping("getStudentDetailTask")
@@ -170,6 +170,28 @@ public class MemberTaskStatusController {
         }
     }
 
+    /**
+     * @param map:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 老师批改作业
+     * @Date: 2023/3/26 10:58
+     */
+    @PostMapping("correctingTask")
+    public Result correctingTask(@RequestBody Map<String, Object> map) {
 
+        UpdateWrapper<MemberTaskStatus> updateWrapper = new UpdateWrapper<>();
+        updateWrapper
+                .eq("status_id", map.get("statusId"))
+                .set("rate", map.get("rate"))
+                .set("remark", map.get("remark"))
+                .set("mark_status", map.get("mark_status"));
+        //    存入数据库
+        if (memberTaskStatusService.update(updateWrapper)) {
+            return Result.success("批改录入成功");
+        } else {
+            return Result.error("批改录入失败");
+        }
+    }
 }
 

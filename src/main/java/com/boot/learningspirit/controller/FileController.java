@@ -72,18 +72,18 @@ public class FileController {
 
 
     @GetMapping("download")
-    public void userImage(@RequestParam String filePath, @RequestParam String type, HttpServletResponse response) throws IOException {
+    public void userImage(@RequestParam String filePath, HttpServletResponse response) throws IOException {
         ServletOutputStream outputStream = null;
         InputStream inputStream = null;
         try {
             //输出流，通过输出流将文件写回浏览器
             outputStream = response.getOutputStream();
-
-            if ("img".equals(type)) {
-                response.setContentType("image/jpeg");
-            } else if ("vedio".equals(type)) {
-
-            }
+//            response.setContentType("image/jpeg");
+//            if ("jpg".equals(filePath.substring(filePath.lastIndexOf(".")))) {
+//                response.setContentType("image/jpeg");
+//            } else if ("vedio".equals("")) {
+//
+//            }
 
             //从MinIo中获取用户头像
             String bucketName = "spirit";

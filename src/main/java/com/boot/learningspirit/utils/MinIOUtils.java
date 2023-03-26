@@ -265,8 +265,8 @@ public class MinIOUtils {
             url = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
-                            .bucket("bucketName")
-                            .object("objectName")
+                            .bucket(bucketName)
+                            .object(objectName)
                             .expiry(expires)
                             .build());
         }
@@ -314,7 +314,7 @@ public class MinIOUtils {
     @SneakyThrows
     public StatObjectResponse statObject(String bucketName, String objectName) {
         if (bucketExists(bucketName)) {
-            return minioClient.statObject(StatObjectArgs.builder().bucket("bucketName").object("objectName").build());
+            return minioClient.statObject(StatObjectArgs.builder().bucket(bucketName).object(objectName).build());
         }
         return null;
     }
