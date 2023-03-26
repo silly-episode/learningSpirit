@@ -42,21 +42,34 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
     private String remark;
     //    评级
     private int rate;
+    //任务类型，接龙，填表，通知；测验，作业
+    private String type;
     //    文件列表,逗号区分
     private String fileList;
-    @TableField(exist = false)
+    //    接龙和通知的确认
+    private Boolean confirm;
+    // 测验的成绩
+    private int grade;
+    // 老师是否批改
+    private Boolean markStatus;
+    // 答案列表,用逗号区分
+    private String answerList;
     //    班级已经完成的人数
-    private int countStatus;
     @TableField(exist = false)
+    private int countStatus;
     //    用户名
+    @TableField(exist = false)
     private String userName;
 
 
-    public MemberTaskStatus(Long taskId, String openId, LocalDateTime statusTime, Long classId) {
+    public MemberTaskStatus(Long taskId, String openId,
+                            LocalDateTime statusTime,
+                            Long classId, String type) {
         this.taskId = taskId;
         this.openId = openId;
         this.statusTime = statusTime;
         this.classId = classId;
+        this.type = type;
     }
 
     /**

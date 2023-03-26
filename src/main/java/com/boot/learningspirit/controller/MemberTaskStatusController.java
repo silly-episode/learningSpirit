@@ -2,6 +2,7 @@ package com.boot.learningspirit.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.ClassMember;
 import com.boot.learningspirit.entity.MemberTaskStatus;
@@ -12,13 +13,11 @@ import com.boot.learningspirit.service.TaskService;
 import com.boot.learningspirit.service.UserService;
 import com.boot.learningspirit.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,6 +120,56 @@ public class MemberTaskStatusController {
         task.setMemberTaskStatus(status);
         return Result.success(task);
     }
+
+
+    /**
+     * @param map:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: 录入成绩
+     * @Date: 2023/3/26 9:51
+     */
+    @PostMapping("saveTaskResult")
+    public Result saveGrade(@RequestBody Map<String, Object> map,
+                            HttpServletRequest request) {
+        //获取请求头token
+        String token = request.getHeader("Authorization");
+        //从token中获取openid
+        String openid = jwtUtil.getOpenidFromToken(token);
+        String type = (String) map.get("type");
+        UpdateWrapper<MemberTaskStatus> updateWrapper = new UpdateWrapper<>();
+        updateWrapper
+                .eq("open_id", openid)
+                .eq("task_id", map.get("taskId"))
+                .eq("type", type)
+                .set("status", "已完成")
+                .set("status_time", LocalDateTime.now());
+
+//        不同的修改
+        if ("exam".equals(type)) {
+            updateWrapper.set("grade", map.get("grade"));
+        } else if ("notice".equals(type)) {
+            updateWrapper.set("confirm", true);
+        } else if ("jielong".equals(type)) {
+            updateWrapper
+                    .set("confirm", true)
+                    .set("msg", map.get("msg"));
+        } else if ("tianbiao".equals(type)) {
+            updateWrapper.set("answer_list", map.get("answerList"));
+        } else if ("work".equals(type)) {
+            updateWrapper
+                    .set("file_list", map.get("fileList"))
+                    .set("msg", map.get("msg"));
+        }
+
+//    存入数据库
+        if (memberTaskStatusService.update(updateWrapper)) {
+            return Result.success("录入成绩成功");
+        } else {
+            return Result.error("录入成绩失败");
+        }
+    }
+
 
 }
 

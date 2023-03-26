@@ -93,7 +93,7 @@ public class TaskController {
             memberTaskStatusList.add(
                     new MemberTaskStatus(
                             taskId, classMember.getOpenId(),
-                            now, classMember.getClassId()));
+                            now, classMember.getClassId(), task.getType()));
         }
 
         memberTaskStatusService.saveBatch(memberTaskStatusList);
@@ -144,23 +144,20 @@ public class TaskController {
         List<Task> taskList = new ArrayList<>(100);
 //        分情况查询
         for (ClassMember member : list) {
+            queryWrapper
+                    .like(null != title, "title", title)
+                    .eq("is_draft", false)
+                    .like("receive_class_list", String.valueOf(member.getClassId()))
+                    .le(null != endDate, "publish_time", endDate)
+                    .ge(null != beginDate, "publish_time", beginDate);
+
             if ("affair".equals(type)) {
                 queryWrapper
-                        .like(null != title, "title", title)
-                        .eq("is_draft", false)
-                        .like("receive_class_list", String.valueOf(member.getClassId()))
-                        .le(null != endDate, "publish_time", endDate)
-                        .ge(null != beginDate, "publish_time", beginDate)
                         .and(e -> e.eq("type", "notice")
                                 .or().eq("type", "jielong")
                                 .or().eq("type", "tianbiao"));
             } else {
                 queryWrapper
-                        .like(null != title, "title", title)
-                        .eq("is_draft", false)
-                        .like("receive_class_list", String.valueOf(member.getClassId()))
-                        .le(null != endDate, "publish_time", endDate)
-                        .ge(null != beginDate, "publish_time", beginDate)
                         .and(e -> e.eq("type", "work")
                                 .or().eq("type", "exam"));
             }
