@@ -1,44 +1,55 @@
 package com.boot.learningspirit.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * @Project: learningSpirit
- * @Author: DengYinzhe
- * @Date: 2023/3/26 15:06
- * @FileName: ApplyClassMember
- * @Description:
+ * (ApplyClassMember)表实体类
+ *
+ * @author makejava
+ * @since 2023-03-27 08:44:29
  */
 @SuppressWarnings("all")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ApplyClassMember {
+public class ApplyClassMember extends Model<ApplyClassMember> {
     //主键
-    @TableId(type = IdType.ASSIGN_ID)
     private Long applyId;
     //用户id
     private String openId;
-    //班级id
+    //申请加入班级的id
     private Long classId;
     //申请加入时间
     private LocalDateTime applyTime;
-    //身份类型
+    //身份
     private String type;
     //申请结果
-    private String Result;
-    //处理人id
-    private String dealOpenId;
+    private String result;
     //是否处理
     private Boolean deal;
+    //处理人id
+    private String dealOpenId;
     //申请班级名称
+    @TableField(exist = false)
     private String className;
 
 
+    /**
+     * 获取主键值
+     *
+     * @return 主键值
+     */
+    @Override
+    public Serializable pkVal() {
+        return this.applyId;
+    }
 }
+

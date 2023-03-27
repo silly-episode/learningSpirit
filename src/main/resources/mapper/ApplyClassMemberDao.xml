@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.ApplyClassMemberDao">
+
+    <resultMap type="com.boot.learningspirit.entity.ApplyClassMember" id="ApplyClassMemberMap">
+        <result property="applyId" column="apply_id" jdbcType="INTEGER"/>
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="applyTime" column="apply_time" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="result" column="result" jdbcType="VARCHAR"/>
+        <result property="deal" column="deal" jdbcType="INTEGER"/>
+        <result property="dealOpenId" column="deal_open_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="applyId" useGeneratedKeys="true">
+        insert into learningspirit.apply_class_member(open_id, class_id, apply_time, type, result, deal, deal_open_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.openId}, #{entity.classId}, #{entity.applyTime}, #{entity.type}, #{entity.result}, #{entity.deal},
+            #{entity.dealOpenId})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="applyId" useGeneratedKeys="true">
+        insert into learningspirit.apply_class_member(open_id, class_id, apply_time, type, result, deal, deal_open_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.openId}, #{entity.classId}, #{entity.applyTime}, #{entity.type}, #{entity.result}, #{entity.deal},
+            #{entity.dealOpenId})
+        </foreach>
+        on duplicate key update
+        open_id = values(open_id) , class_id = values(class_id) , apply_time = values(apply_time) , type = values(type)
+        , result = values(result) , deal = values(deal) , deal_open_id = values(deal_open_id)
+    </insert>
+
+</mapper>
+

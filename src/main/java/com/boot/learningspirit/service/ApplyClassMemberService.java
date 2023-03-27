@@ -4,11 +4,12 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.boot.learningspirit.entity.ApplyClassMember;
 
 /**
- * @Project: learningSpirit
- * @Author: DengYinzhe
- * @Date: 2023/3/26 15:18
- * @FileName: ApplyClassMemberService
- * @Description:
+ * (ApplyClassMember)表服务接口
+ *
+ * @author makejava
+ * @since 2023-03-27 08:42:21
  */
 public interface ApplyClassMemberService extends IService<ApplyClassMember> {
+
 }
+
