@@ -125,6 +125,13 @@ public class ClassMemberController {
         Boolean flag1 = classMemberService.removeByMap(map);
         Boolean flag2 = memberTaskStatusService.removeByMap(map);
         if (flag1 & flag2) {
+            ClassMember classMember = classMemberService.getById(openId);
+            BanJi banJi = classService.getById(classId);
+            if (!"student".equals(classMember.getType())) {
+                banJi.setTeacherCount(banJi.getTeacherCount() - 1);
+            }
+            banJi.setJoined(banJi.getJoined() - 1);
+            classService.updateById(banJi);
             return Result.success("删除该成员成功");
         } else {
             return Result.error("删除失败");
