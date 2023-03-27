@@ -74,6 +74,25 @@ public class QuestionBankController {
     }
 
     /**
+     * @param moduleId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 删除题库
+     * @Date: 2023/3/27 11:41
+     */
+    @GetMapping("deleteBank")
+    public Result deleteBank(@RequestParam Long moduleId) {
+        QueryWrapper<QuestionBank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("module_id", moduleId);
+        if (questionBankService.remove(queryWrapper)) {
+            return Result.success("删除成功");
+        } else {
+            return Result.error("删除失败");
+        }
+    }
+
+
+    /**
      * @param pageNum:
      * @param pageSize:
      * @param moduleId:

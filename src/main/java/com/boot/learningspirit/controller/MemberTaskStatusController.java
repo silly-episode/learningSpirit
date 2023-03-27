@@ -155,7 +155,8 @@ public class MemberTaskStatusController {
                     .set("confirm", true)
                     .set("msg", map.get("msg"));
         } else if ("tianbiao".equals(type)) {
-            updateWrapper.set("answer_list", map.get("answerList"));
+            updateWrapper.set("answer_list", map.get("answerList"))
+                    .set("fileList", map.get("fileList"));
         } else if ("work".equals(type)) {
             updateWrapper
                     .set("file_list", map.get("fileList"))
@@ -186,7 +187,8 @@ public class MemberTaskStatusController {
                 .eq("status_id", map.get("statusId"))
                 .set("rate", map.get("rate"))
                 .set("remark", map.get("remark"))
-                .set("mark_status", true);
+                .set("mark_status", true)
+                .set("file_list", map.get("fileList"));
         //    存入数据库
         if (memberTaskStatusService.update(updateWrapper)) {
             return Result.success("批改录入成功");

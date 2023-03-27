@@ -98,14 +98,7 @@ public class FileController {
                 }
             }
         } catch (IOException ignored) {
-        } finally {
-            //关闭资源
-            assert outputStream != null;
-            outputStream.close();
-            assert inputStream != null;
-            inputStream.close();
         }
-
     }
 
 
