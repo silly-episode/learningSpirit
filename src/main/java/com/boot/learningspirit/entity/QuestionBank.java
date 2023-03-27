@@ -49,7 +49,7 @@ public class QuestionBank extends Model<QuestionBank> {
     private LocalDateTime questionCreateTime;
     //排序id
     @ExcelProperty("orderId")
-    private String orderId;
+    private Integer orderId;
     //    题库名称
     private String module;
     // 题库id

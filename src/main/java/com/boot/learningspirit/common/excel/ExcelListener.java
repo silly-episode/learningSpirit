@@ -22,6 +22,9 @@ import java.util.Map;
 @Slf4j
 public class ExcelListener extends AnalysisEventListener<QuestionBank> {
 
+
+    private int count = 1;
+
     /**
      * 每隔5条存储数据库，实际使用中可以100条，然后清理list ，方便内存回收
      */
@@ -69,7 +72,7 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
         data.setQuestionCreateTime(localDateTime);
         data.setModule(this.module);
         data.setModuleId(this.moduleId);
-        System.out.println(data.toString());
+        data.setOrderId(count++);
         cachedDataList.add(data);
         // 达到BATCH_COUNT了，需要去存储一次数据库，防止数据几万条数据在内存，容易OOM
         if (cachedDataList.size() >= BATCH_COUNT) {
