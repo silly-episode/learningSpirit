@@ -4,13 +4,12 @@ package com.boot.learningspirit.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.dto.GradeJsonDto;
 import com.boot.learningspirit.entity.ClassMember;
 import com.boot.learningspirit.entity.MemberTaskStatus;
 import com.boot.learningspirit.entity.Task;
-import com.boot.learningspirit.service.ClassMemberService;
-import com.boot.learningspirit.service.MemberTaskStatusService;
-import com.boot.learningspirit.service.TaskService;
-import com.boot.learningspirit.service.UserService;
+import com.boot.learningspirit.service.*;
+import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +44,8 @@ public class MemberTaskStatusController {
     private UserService userService;
     @Resource
     private ClassMemberService classMemberService;
+    @Resource
+    private QuestionBankService questionBankService;
 
     /**
      * @param taskId:
@@ -147,7 +148,9 @@ public class MemberTaskStatusController {
 
 //        不同的修改
         if ("exam".equals(type)) {
-            updateWrapper.set("grade", map.get("grade"));
+            updateWrapper
+                    .set("grade", map.get("grade"))
+                    .set("json_str", map.get("jsonStr"));
         } else if ("notice".equals(type)) {
             updateWrapper.set("confirm", true);
         } else if ("jielong".equals(type)) {
@@ -171,6 +174,29 @@ public class MemberTaskStatusController {
             return Result.error("录入成绩失败");
         }
     }
+
+    /**
+     * @param taskId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取某次成绩
+     * @Date: 2023/3/28 17:48
+     */
+    @GetMapping("getGrade")
+    public Result getGrade(@RequestParam Long taskId, HttpServletRequest request) {
+        //获取请求头token
+        String token = request.getHeader("Authorization");
+        //从token中获取openid
+        String openid = jwtUtil.getOpenidFromToken(token);
+        QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .select("grade,json_str")
+                .eq("task_id", taskId)
+                .eq("open_id", openid);
+        GradeJsonDto gradeJsonDto = BeanDtoVoUtils.convert(memberTaskStatusService.getOne(queryWrapper), GradeJsonDto.class);
+        return Result.success(gradeJsonDto);
+    }
+
 
     /**
      * @param map:

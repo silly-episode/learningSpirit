@@ -54,6 +54,8 @@ public class MemberTaskStatus extends Model<MemberTaskStatus> {
     private Boolean markStatus;
     // 答案列表,用逗号区分
     private String answerList;
+    //jsonStr
+    private String jsonStr;
     //    班级已经完成的人数
     @TableField(exist = false)
     private int countStatus;

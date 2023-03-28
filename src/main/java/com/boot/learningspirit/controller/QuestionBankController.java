@@ -170,6 +170,11 @@ public class QuestionBankController {
                 .in("order_id", set)
                 .orderByAsc("order_id");
         List<QuestionBank> list = questionBankService.list(queryWrapper);
+
+        for (QuestionBank bank : list) {
+            bank.setChoiceList(Arrays.asList(bank.getChoice().split("\\s+")));
+        }
+
         return Result.success(list);
     }
 
