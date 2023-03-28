@@ -31,5 +31,6 @@ public interface MessageDao extends BaseMapper<Message> {
      */
     int insertOrUpdateBatch(@Param("entities") List<Message> entities);
 
+
 }
 

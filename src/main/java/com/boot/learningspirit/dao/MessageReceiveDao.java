@@ -31,5 +31,6 @@ public interface MessageReceiveDao extends BaseMapper<MessageReceive> {
      */
     int insertOrUpdateBatch(@Param("entities") List<MessageReceive> entities);
 
+
 }
 

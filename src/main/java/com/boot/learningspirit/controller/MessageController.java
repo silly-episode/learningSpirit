@@ -90,16 +90,28 @@ public class MessageController {
         String token = request.getHeader("Authorization");
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
+//        分情况删消息接收
         QueryWrapper<MessageReceive> queryWrapper = new QueryWrapper<>();
         if (delMsgDto.getDelAll()) {
             queryWrapper.eq("receive_open_id", openid);
         } else {
-            queryWrapper.in("msg_id", delMsgDto.getMsgIdList());
+            queryWrapper
+                    .eq("receive_open_id", openid)
+                    .in("msg_id", delMsgDto.getMsgIdList());
         }
         receiveService.remove(queryWrapper);
 //            如果消息表对应的receive的表的count为空则删除消息表中的消息
-
-        return Result.success();
+        queryWrapper.clear();
+        queryWrapper.in("msg_id", delMsgDto.getMsgIdList());
+        List<MessageReceive> list = receiveService.list(queryWrapper);
+        for (MessageReceive receive : list) {
+            queryWrapper.clear();
+            queryWrapper.eq("msg_id", receive.getMsgId());
+            if (0 == receiveService.count(queryWrapper)) {
+                messageService.removeById(receive.getMsgId());
+            }
+        }
+        return Result.success("删除成功");
     }
 
 }
