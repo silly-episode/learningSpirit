@@ -12,6 +12,7 @@ import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -132,19 +133,35 @@ public class TaskController {
      * @param taskId:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 删除草稿
+     * @Description: TODO 删除任务
      * @Date: 2023/3/26 13:10
      */
     @GetMapping("delete")
-    public Result delete(@RequestParam Long taskId) {
+    @Transactional
+    public Result delete(@RequestParam Long taskId, @RequestParam String taskType) {
         Task task = taskService.getById(taskId);
-        if (!task.getIsDraft()) {
-            return Result.error("该任务不是草稿，不能删除");
-        } else {
-            if (taskService.removeById(taskId)) {
-                return Result.success("删除草稿成功");
+        if ("draft".equals(taskType)) {
+            if (!task.getIsDraft()) {
+                return Result.error("该任务不是草稿，不能删除");
             } else {
-                return Result.error("删除草稿失败");
+                if (taskService.removeById(taskId)) {
+                    return Result.success("删除草稿成功");
+                } else {
+                    return Result.error("删除草稿失败");
+                }
+            }
+        } else {
+            boolean flag1 = taskService.removeById(taskId);
+
+            QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("task_id", taskId);
+
+            boolean flag2 = memberTaskStatusService.remove(queryWrapper);
+
+            if (flag1 & flag2) {
+                return Result.success("撤销任务成功");
+            } else {
+                return Result.error("撤销任务失败");
             }
         }
     }

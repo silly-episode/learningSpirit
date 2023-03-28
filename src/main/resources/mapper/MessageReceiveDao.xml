@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.MessageReceiveDao">
+
+    <resultMap type="com.boot.learningspirit.entity.MessageReceive" id="MessageReceiveMap">
+        <result property="msgReceiveId" column="msg_receive_id" jdbcType="INTEGER"/>
+        <result property="messageReceive" column="message_receive" jdbcType="TIMESTAMP"/>
+        <result property="receiveOpenId" column="receive_open_id" jdbcType="VARCHAR"/>
+        <result property="msgId" column="msg_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="msgReceiveId" useGeneratedKeys="true">
+        insert into learningspirit.message_receive(message_receive, receive_open_id, msg_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.messageReceive}, #{entity.receiveOpenId}, #{entity.msgId})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="msgReceiveId" useGeneratedKeys="true">
+        insert into learningspirit.message_receive(message_receive, receive_open_id, msg_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.messageReceive}, #{entity.receiveOpenId}, #{entity.msgId})
+        </foreach>
+        on duplicate key update
+        message_receive = values(message_receive) , receive_open_id = values(receive_open_id) , msg_id = values(msg_id)
+    </insert>
+
+</mapper>
+

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.MessageDao">
+
+    <resultMap type="com.boot.learningspirit.entity.Message" id="MessageMap">
+        <result property="msgId" column="msg_id" jdbcType="INTEGER"/>
+        <result property="msgType" column="msg_type" jdbcType="INTEGER"/>
+        <result property="msgTitle" column="msg_title" jdbcType="VARCHAR"/>
+        <result property="msgContent" column="msg_content" jdbcType="VARCHAR"/>
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="msgId" useGeneratedKeys="true">
+        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="msgId" useGeneratedKeys="true">
+        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId})
+        </foreach>
+        on duplicate key update
+        msg_type = values(msg_type) , msg_title = values(msg_title) , msg_content = values(msg_content) , open_id =
+        values(open_id) , class_id = values(class_id)
+    </insert>
+
+</mapper>
+

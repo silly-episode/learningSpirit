@@ -200,6 +200,16 @@ public class ClassMemberController {
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
         classMember.setOpenId(openid);
+
+//        判断其是否已经加入过该班级
+        QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("open_id", openid);
+        ClassMember classMemberFromDb = classMemberService.getOne(queryWrapper);
+        if (classMemberFromDb.getClassId().equals(classMember.getClassId())) {
+            return Result.error(4060, "你已经加入了该班级");
+        }
+
+
 //        如果班级已满则不能加入班级
         BanJi banJi = classService.getById(classMember.getClassId());
         if (banJi.getJoined().equals(banJi.getClassNum())) {
