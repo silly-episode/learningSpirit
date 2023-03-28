@@ -13,7 +13,7 @@
         insert into learningspirit.class_member(type)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.type})
+        (#{entity.type})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->

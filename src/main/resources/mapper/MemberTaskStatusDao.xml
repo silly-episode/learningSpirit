@@ -8,26 +8,46 @@
         <result property="openId" column="open_id" jdbcType="VARCHAR"/>
         <result property="status" column="status" jdbcType="VARCHAR"/>
         <result property="statusTime" column="status_time" jdbcType="TIMESTAMP"/>
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="rate" column="rate" jdbcType="INTEGER"/>
+        <result property="msg" column="msg" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="fileList" column="file_list" jdbcType="VARCHAR"/>
+        <result property="markStatus" column="mark_status" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="confirm" column="confirm" jdbcType="INTEGER"/>
+        <result property="grade" column="grade" jdbcType="INTEGER"/>
+        <result property="answerList" column="answer_list" jdbcType="VARCHAR"/>
+        <result property="jsonStr" column="json_str" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="statusId" useGeneratedKeys="true">
-        insert into learningspirit.member_task_status(task_id, open_id, status, status_time)
+        insert into learningspirit.member_task_status(task_id, open_id, status, status_time, class_id, rate, msg,
+        remark, file_list, mark_status, type, confirm, grade, answer_list, json_str)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.taskId}, #{entity.openId}, #{entity.status}, #{entity.statusTime})
+            (#{entity.taskId}, #{entity.openId}, #{entity.status}, #{entity.statusTime}, #{entity.classId},
+            #{entity.rate}, #{entity.msg}, #{entity.remark}, #{entity.fileList}, #{entity.markStatus}, #{entity.type},
+            #{entity.confirm}, #{entity.grade}, #{entity.answerList}, #{entity.jsonStr})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="statusId" useGeneratedKeys="true">
-        insert into learningspirit.member_task_status(task_id, open_id, status, status_time)
+        insert into learningspirit.member_task_status(task_id, open_id, status, status_time, class_id, rate, msg,
+        remark, file_list, mark_status, type, confirm, grade, answer_list, json_str)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.taskId}, #{entity.openId}, #{entity.status}, #{entity.statusTime})
+            (#{entity.taskId}, #{entity.openId}, #{entity.status}, #{entity.statusTime}, #{entity.classId},
+            #{entity.rate}, #{entity.msg}, #{entity.remark}, #{entity.fileList}, #{entity.markStatus}, #{entity.type},
+            #{entity.confirm}, #{entity.grade}, #{entity.answerList}, #{entity.jsonStr})
         </foreach>
         on duplicate key update
         task_id = values(task_id) , open_id = values(open_id) , status = values(status) , status_time =
-        values(status_time)
+        values(status_time) , class_id = values(class_id) , rate = values(rate) , msg = values(msg) , remark =
+        values(remark) , file_list = values(file_list) , mark_status = values(mark_status) , type = values(type) ,
+        confirm = values(confirm) , grade = values(grade) , answer_list = values(answer_list) , json_str =
+        values(json_str)
     </insert>
 
 </mapper>

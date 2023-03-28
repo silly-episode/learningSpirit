@@ -9,26 +9,29 @@
         <result property="msgContent" column="msg_content" jdbcType="VARCHAR"/>
         <result property="openId" column="open_id" jdbcType="VARCHAR"/>
         <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="messageCreateTime" column="message_create_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="msgId" useGeneratedKeys="true">
-        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id)
+        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId})
+            (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId},
+            #{entity.messageCreateTime})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="msgId" useGeneratedKeys="true">
-        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id)
+        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId})
+            (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId},
+            #{entity.messageCreateTime})
         </foreach>
         on duplicate key update
         msg_type = values(msg_type) , msg_title = values(msg_title) , msg_content = values(msg_content) , open_id =
-        values(open_id) , class_id = values(class_id)
+        values(open_id) , class_id = values(class_id) , message_create_time = values(message_create_time)
     </insert>
 
 </mapper>

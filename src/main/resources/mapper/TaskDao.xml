@@ -14,31 +14,40 @@
         <result property="receiveClassList" column="receive_class_list" jdbcType="VARCHAR"/>
         <result property="deadline" column="deadline" jdbcType="TIMESTAMP"/>
         <result property="fixTime" column="fix_time" jdbcType="TIMESTAMP"/>
+        <result property="isDraft" column="is_draft" jdbcType="INTEGER"/>
+        <result property="qNumber" column="q_number" jdbcType="INTEGER"/>
+        <result property="random" column="random" jdbcType="INTEGER"/>
+        <result property="moduleId" column="module_id" jdbcType="INTEGER"/>
+        <result property="publishTime" column="publish_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="taskId" useGeneratedKeys="true">
         insert into learningspirit.task(open_id, type, title, content, file_list, question_list, way,
-        receive_class_list, deadline, fix_time)
+        receive_class_list, deadline, fix_time, is_draft, q_number, random, module_id, publish_time)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.openId}, #{entity.typeWork}, #{entity.title}, #{entity.content}, #{entity.fileList},
-            #{entity.questionList}, #{entity.way}, #{entity.receiveClassList}, #{entity.deadline}, #{entity.fixTime})
+            (#{entity.openId}, #{entity.type}, #{entity.title}, #{entity.content}, #{entity.fileList},
+            #{entity.questionList}, #{entity.way}, #{entity.receiveClassList}, #{entity.deadline}, #{entity.fixTime},
+            #{entity.isDraft}, #{entity.qNumber}, #{entity.random}, #{entity.moduleId}, #{entity.publishTime})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="taskId" useGeneratedKeys="true">
         insert into learningspirit.task(open_id, type, title, content, file_list, question_list, way,
-        receive_class_list, deadline, fix_time)
+        receive_class_list, deadline, fix_time, is_draft, q_number, random, module_id, publish_time)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.openId}, #{entity.typeWork}, #{entity.title}, #{entity.content}, #{entity.fileList},
-            #{entity.questionList}, #{entity.way}, #{entity.receiveClassList}, #{entity.deadline}, #{entity.fixTime})
+            (#{entity.openId}, #{entity.type}, #{entity.title}, #{entity.content}, #{entity.fileList},
+            #{entity.questionList}, #{entity.way}, #{entity.receiveClassList}, #{entity.deadline}, #{entity.fixTime},
+            #{entity.isDraft}, #{entity.qNumber}, #{entity.random}, #{entity.moduleId}, #{entity.publishTime})
         </foreach>
         on duplicate key update
-        open_id = values(open_id) , type = values(type) , title = values(title) , content = values(content) ,
-        file_list = values(file_list) , question_list = values(question_list) , way = values(way) , receive_class_list =
-        values(receive_class_list) , deadline = values(deadline) , fix_time = values(fix_time)
+        open_id = values(open_id) , type = values(type) , title = values(title) , content = values(content) , file_list
+        = values(file_list) , question_list = values(question_list) , way = values(way) , receive_class_list =
+        values(receive_class_list) , deadline = values(deadline) , fix_time = values(fix_time) , is_draft =
+        values(is_draft) , q_number = values(q_number) , random = values(random) , module_id = values(module_id) ,
+        publish_time = values(publish_time)
     </insert>
 
 </mapper>

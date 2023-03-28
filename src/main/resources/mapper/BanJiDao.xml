@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.BanJiDao">
+
+    <resultMap type="com.boot.learningspirit.entity.BanJi" id="BanJiMap">
+        <result property="classId" column="class_id" jdbcType="INTEGER"/>
+        <result property="className" column="class_name" jdbcType="VARCHAR"/>
+        <result property="classNum" column="class_num" jdbcType="INTEGER"/>
+        <result property="classCreator" column="class_creator" jdbcType="VARCHAR"/>
+        <result property="classAdmin" column="class_admin" jdbcType="VARCHAR"/>
+        <result property="classCreateTime" column="class_create_time" jdbcType="TIMESTAMP"/>
+        <result property="joined" column="joined" jdbcType="INTEGER"/>
+        <result property="teacherCount" column="teacher_count" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="classId" useGeneratedKeys="true">
+        insert into learningspirit.ban_ji(class_name, class_num, class_creator, class_admin, class_create_time, joined,
+        teacher_count)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.className}, #{entity.classNum}, #{entity.classCreator}, #{entity.classAdmin},
+            #{entity.classCreateTime}, #{entity.joined}, #{entity.teacherCount})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="classId" useGeneratedKeys="true">
+        insert into learningspirit.ban_ji(class_name, class_num, class_creator, class_admin, class_create_time, joined,
+        teacher_count)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.className}, #{entity.classNum}, #{entity.classCreator}, #{entity.classAdmin},
+            #{entity.classCreateTime}, #{entity.joined}, #{entity.teacherCount})
+        </foreach>
+        on duplicate key update
+        class_name = values(class_name) , class_num = values(class_num) , class_creator = values(class_creator) ,
+        class_admin = values(class_admin) , class_create_time = values(class_create_time) , joined = values(joined) ,
+        teacher_count = values(teacher_count)
+    </insert>
+
+</mapper>
+

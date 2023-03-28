@@ -9,26 +9,27 @@
         <result property="sex" column="sex" jdbcType="VARCHAR"/>
         <result property="tel" column="tel" jdbcType="VARCHAR"/>
         <result property="subject" column="subject" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="openId" useGeneratedKeys="true">
-        insert into learningspirit.user(user_name, role, sex, tel, subject)
+        insert into learningspirit.user(user_name, role, sex, tel, subject, email)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.userName}, #{entity.role}, #{entity.sex}, #{entity.tel}, #{entity.subject})
+            (#{entity.userName}, #{entity.role}, #{entity.sex}, #{entity.tel}, #{entity.subject}, #{entity.email})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="openId" useGeneratedKeys="true">
-        insert into learningspirit.user(user_name, role, sex, tel, subject)
+        insert into learningspirit.user(user_name, role, sex, tel, subject, email)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.userName}, #{entity.role}, #{entity.sex}, #{entity.tel}, #{entity.subject})
+            (#{entity.userName}, #{entity.role}, #{entity.sex}, #{entity.tel}, #{entity.subject}, #{entity.email})
         </foreach>
         on duplicate key update
         user_name = values(user_name) , role = values(role) , sex = values(sex) , tel = values(tel) , subject =
-        values(subject)
+        values(subject) , email = values(email)
     </insert>
 
 </mapper>
