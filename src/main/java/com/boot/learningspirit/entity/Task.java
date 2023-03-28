@@ -62,7 +62,7 @@ public class Task extends Model<Task> {
     // 题库id
     private Long moduleId;
     // 题目数量
-    private int qNumber;
+    private Integer qNumber;
     //    发布时间
     private LocalDateTime publishTime;
     //    已完成人数

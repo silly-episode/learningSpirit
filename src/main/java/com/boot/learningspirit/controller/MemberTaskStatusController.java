@@ -176,7 +176,7 @@ public class MemberTaskStatusController {
      * @param map:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 老师批改作业
+     * @Description: 老师批改作业
      * @Date: 2023/3/26 10:58
      */
     @PostMapping("correctingTask")

@@ -2,11 +2,9 @@ package com.boot.learningspirit.controller;
 
 
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.entity.Task;
 import com.boot.learningspirit.utils.MinIOUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -14,7 +12,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 
 
 /**
@@ -35,10 +32,10 @@ public class FileController {
         return "Test";
     }
 
-    @GetMapping("test")
-    public Result test(@RequestParam LocalDateTime time) {
-        System.out.println(time);
-        return Result.success();
+    @PostMapping("test")
+    public Result AAA(@RequestBody Task a) {
+        System.out.println(a.getQNumber());
+        return Result.success(a.getQNumber());
     }
 
     /**

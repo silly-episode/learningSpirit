@@ -143,7 +143,7 @@ public class ClassMemberController {
      * @param applyId:
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 删除请求
+     * @Description: TODO 删除加入班级请求
      * @Date: 2023/3/26 16:47
      */
     @GetMapping("deleteApply")
@@ -155,6 +155,15 @@ public class ClassMemberController {
         }
     }
 
+    /**
+     * @param pageSize:
+     * @param pageNum:
+     * @param request:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取申请列表
+     * @Date: 2023/3/28 8:45
+     */
     @GetMapping("getApplyList")
     public Result getApplyList(
             @RequestParam Integer pageSize,

@@ -7,7 +7,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.excel.ExcelListener;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.QuestionBank;
+import com.boot.learningspirit.entity.Task;
 import com.boot.learningspirit.service.QuestionBankService;
+import com.boot.learningspirit.service.TaskService;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,8 @@ public class QuestionBankController {
      */
     @Resource
     private QuestionBankService questionBankService;
+    @Resource
+    private TaskService taskService;
 
     /**
      * @param file:
@@ -120,26 +124,37 @@ public class QuestionBankController {
     }
 
     /**
-     * @param moduleId:
-     * @param random:
-     * @param qNumber:
+     * @param taskId:
      * @Return: Result
      * @Author: DengYinzhe
      * @Description: TODO 获取考试题目
      * @Date: 2023/3/26 14:49
      */
     @GetMapping("getExamQuestionList")
-    public Result getExamQuestionList(@RequestParam Long moduleId,
-                                      @RequestParam Boolean random,
-                                      @RequestParam Integer qNumber) {
+    public Result getExamQuestionList(@RequestParam Long taskId) {
+
+        Task task = taskService.getById(taskId);
+        int qNumber = task.getQNumber();
+        boolean random = task.getRandom();
+        Long moduleId = task.getModuleId();
+        if (task.getModuleId() == null) {
+            return Result.error("该任务并非测验类型");
+        }
         Set<Integer> set = new HashSet<>(qNumber);
         if (random) {
             Random ran = new Random();
             Long bankMaxCount = questionBankService.count(
                     new QueryWrapper<QuestionBank>()
                             .eq("module_id", moduleId));
+            System.out.println(set.size());
+            System.out.println(ran.nextInt(Math.toIntExact(bankMaxCount)) + 1);
+            System.out.println(qNumber);
+            System.out.println(set.size() != qNumber);
             while (set.size() != qNumber) {
-                set.add(ran.nextInt(Math.toIntExact(bankMaxCount)) + 1);
+                System.out.println("123");
+                Integer r = ran.nextInt(Math.toIntExact(bankMaxCount)) + 1;
+                System.out.println(r);
+                set.add(r);
             }
             System.out.println(set.toString());
             System.out.println(bankMaxCount);

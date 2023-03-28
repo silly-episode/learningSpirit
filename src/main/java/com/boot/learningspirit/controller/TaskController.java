@@ -18,9 +18,11 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -49,7 +51,7 @@ public class TaskController {
     private MemberTaskStatusService memberTaskStatusService;
 
     /**
-     * @param task:
+     * @param map:
      * @Return: Result
      * @Author: DengYinzhe
      * @Description: TODO 创建任务
@@ -57,8 +59,27 @@ public class TaskController {
      */
     @PostMapping("create")
     public Result create(
-            @RequestBody Task task,
+            @RequestBody Map<String, String> map,
             HttpServletRequest request) {
+        Task task = new Task();
+        task.setQNumber(Integer.valueOf(map.get("qNumber")));
+        task.setContent(map.get("content"));
+        if (!"".equals(map.get("deadline"))) {
+            task.setDeadline(LocalDateTime.parse(map.get("deadline"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+        if (!"".equals(map.get("fixTime"))) {
+            task.setFixTime(LocalDateTime.parse(map.get("fixTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+        task.setFileList(map.get("fileList"));
+
+        task.setIsDraft(Boolean.valueOf(map.get("isDraft")));
+        task.setModuleId(Long.valueOf(map.get("moduleId")));
+        task.setQuestionList(map.get("questionList"));
+        task.setRandom(Boolean.valueOf(map.get("random")));
+        task.setReceiveClassList(map.get("receiveClassList"));
+        task.setTitle(map.get("title"));
+        task.setType(map.get("type"));
+        task.setWay(map.get("way"));
         //获取请求头token
         String token = request.getHeader("Authorization");
         //从token中获取openid
@@ -76,6 +97,8 @@ public class TaskController {
 //        存入task
         Long taskId = SnowFlakeUtil.getNextId();
         task.setTaskId(taskId);
+
+        System.out.println(task.toString());
         taskService.save(task);
         if (task.getIsDraft()) {
             return Result.success("保存草稿成功");
@@ -126,7 +149,19 @@ public class TaskController {
         }
     }
 
-
+    /**
+     * @param type:
+     * @param title:
+     * @param status:
+     * @param isDraft:
+     * @param beginDate:
+     * @param endDate:
+     * @param request:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: 任务列表(学生老师草稿)
+     * @Date: 2023/3/28 8:53
+     */
     @GetMapping("getTaskList")
     public Result getTaskList(@RequestParam String type,
                               @RequestParam String title,
@@ -144,7 +179,10 @@ public class TaskController {
         if ("全部".equals(status)) {
             status = null;
         }
-
+//        System.out.println(type);
+//        System.out.println(title);
+//        System.out.println(status);
+//        System.out.println(isDraft);
 
         //查询该用户加入的班级id
         QueryWrapper<ClassMember> wrapper = new QueryWrapper<>();
@@ -167,10 +205,12 @@ public class TaskController {
             queryWrapper
                     .like(null != title, "title", title)
                     .eq("is_draft", isDraft)
-                    .like("receive_class_list", String.valueOf(member.getClassId()))
+                    .like(!isDraft, "receive_class_list", String.valueOf(member.getClassId()))
+                    .eq(isDraft, "open_id", openid)
                     .le(null != endDate, "publish_time", endDate)
-                    .ge(null != beginDate, "publish_time", beginDate);
-
+                    .ge(null != beginDate, "publish_time", beginDate)
+                    .lt("publish_time", LocalDateTime.now())
+                    .orderByDesc("publish_time");
             if ("affair".equals(type)) {
                 queryWrapper
                         .and(e -> e.eq("type", "notice")
@@ -184,7 +224,7 @@ public class TaskController {
             taskList.addAll(taskService.list(queryWrapper));
             queryWrapper.clear();
         }
-
+        System.out.println("orginTaskList: " + taskList.toString());
 
 //        班级信息
         QueryWrapper<BanJi> banJiWrapper = new QueryWrapper<>();
@@ -201,7 +241,7 @@ public class TaskController {
                 .groupBy("class_id", "task_id");
         List<MemberTaskStatus> statusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
 
-
+        System.out.println("classIdList: " + classIdList);
         //        个人完成情况
         memberTaskStatusQueryWrapper.clear();
         memberTaskStatusQueryWrapper
@@ -246,14 +286,20 @@ public class TaskController {
                 }
             }
         }
+        System.out.println("taskList: " + taskList);
 //        删除status为null的任务
         for (int i = 0; i < taskList.size(); i++) {
-            if (taskList.get(i).getStatus() == null) {
+            System.out.println("===============");
+            System.out.println(taskList.get(i).getTaskId());
+            System.out.println(taskList.get(i).getStatus());
+            System.out.println(taskList.get(i).getIsDraft());
+            System.out.println(taskList.get(i).getStatus() == null && !taskList.get(i).getIsDraft());
+            if (taskList.get(i).getStatus() == null && !taskList.get(i).getIsDraft()) {
                 taskList.remove(i);
                 i--;
             }
         }
-
+        System.out.println(taskList.toString());
         return Result.success(taskList);
     }
 
