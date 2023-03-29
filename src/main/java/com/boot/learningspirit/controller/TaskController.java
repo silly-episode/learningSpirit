@@ -128,7 +128,9 @@ public class TaskController {
             classMemberQueryWrapper.in("class_id", banJiList);
             List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
 
-
+            System.out.println("++++++++++++++++++++++");
+            System.out.println(classMemberList.size());
+            System.out.println(classMemberList.toString());
             //生成消息
             Long msgId = SnowFlakeUtil.getNextId();
             Message msg = new Message()
@@ -157,6 +159,7 @@ public class TaskController {
                 }
 
             }
+
             memberTaskStatusService.saveBatch(memberTaskStatusList);
             msgService.messageSave(msg, msgReceiveList);
             return Result.success();

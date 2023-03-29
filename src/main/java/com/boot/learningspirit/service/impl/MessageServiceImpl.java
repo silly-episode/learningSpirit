@@ -31,7 +31,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageDao, Message> impleme
     @Override
     @Transactional
     public Boolean messageSave(Message msg, List<MessageReceive> msgReceive) {
-        return msgDao.insert(msg) > 0 && msgReceiveDao.insertBatch(msgReceive) > 0;
+        if (msgReceive.size() > 0) {
+            return msgDao.insert(msg) > 0 && msgReceiveDao.insertBatch(msgReceive) > 0;
+        } else {
+            return false;
+        }
     }
 }
 

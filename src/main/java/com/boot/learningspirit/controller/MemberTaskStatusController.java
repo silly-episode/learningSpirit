@@ -68,7 +68,13 @@ public class MemberTaskStatusController {
 //        获取任务的信息
         Task task = taskService.getById(taskId);
         task.setPublisher(userService.getById(task.getOpenId()).getUserName());
-
+        if ("exam".equals(task.getType()) && task.getModuleId() != null) {
+            QueryWrapper<QuestionBank> questionBankQueryWrapper = new QueryWrapper<>();
+            questionBankQueryWrapper
+                    .eq("module_id", task.getModuleId());
+            List<QuestionBank> questionBanks = questionBankService.list(questionBankQueryWrapper);
+            task.setBankName(questionBanks.size() > 0 ? questionBanks.get(1).getModule() : null);
+        }
 //        获取所有的成员的完成情况
         Map<String, Object> map = new HashMap<>(1);
         map.put("task_id", taskId);

@@ -163,38 +163,34 @@ public class ClassMemberController {
         Map<String, Object> map = new HashMap<>(2);
         map.put("open_id", openId);
         map.put("class_id", classId);
+
+        QueryWrapper<ClassMember> c = new QueryWrapper<>();
+        c.eq("open_id", openId).eq("class_id", classId);
+        ClassMember classMember = classMemberService.getOne(c);
+        BanJi banJi = classService.getById(classId);
+        if (!"student".equals(classMember.getType())) {
+            banJi.setTeacherCount(banJi.getTeacherCount() - 1);
+        }
+        banJi.setJoined(banJi.getJoined() - 1);
+        classService.updateById(banJi);
+
+        //发送删除的消息
+        Long msgId = SnowFlakeUtil.getNextId();
+        Message msg = new Message()
+                .setMsgId(msgId)
+                .setMsgContent("已被管理员移出" + banJi.getClassName())
+                .setMsgTitle("退出班级通知")
+                .setMsgType(5)
+                .setMessageCreateTime(LocalDateTime.now());
+        List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+        MessageReceive msgReceive = new MessageReceive()
+                .setMsgId(msgId)
+                .setReceiveOpenId(openId);
+        msgReceiveList.add(msgReceive);
+        msgService.messageSave(msg, msgReceiveList);
         Boolean flag1 = classMemberService.removeByMap(map);
         Boolean flag2 = memberTaskStatusService.removeByMap(map);
-        if (flag1 & flag2) {
-            ClassMember classMember = classMemberService.getById(openId);
-            BanJi banJi = classService.getById(classId);
-            if (!"student".equals(classMember.getType())) {
-                banJi.setTeacherCount(banJi.getTeacherCount() - 1);
-            }
-            banJi.setJoined(banJi.getJoined() - 1);
-            classService.updateById(banJi);
-
-            //发送删除的消息
-            Long msgId = SnowFlakeUtil.getNextId();
-            Message msg = new Message()
-                    .setMsgId(msgId)
-                    .setMsgContent("已被管理员移出" + banJi.getClassName())
-                    .setMsgTitle("退出班级通知")
-                    .setMsgType(5)
-                    .setMessageCreateTime(LocalDateTime.now());
-            List<MessageReceive> msgReceiveList = new ArrayList<>(10);
-            MessageReceive msgReceive = new MessageReceive()
-                    .setMsgId(msgId)
-                    .setReceiveOpenId(openId);
-            msgReceiveList.add(msgReceive);
-            msgService.messageSave(msg, msgReceiveList);
-
-
-            return Result.success("删除该成员成功");
-        } else {
-            return Result.error("删除失败");
-        }
-
+        return Result.success("删除该成员成功");
     }
 
     /**

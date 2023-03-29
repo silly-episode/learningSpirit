@@ -97,6 +97,8 @@ public class Task extends Model<Task> {
     private List<MemberTaskStatus> completedList;
     @TableField(exist = false)
     private MemberTaskStatus memberTaskStatus;
+    @TableField(exist = false)
+    private String bankName;
 
     /**
      * 获取主键值
