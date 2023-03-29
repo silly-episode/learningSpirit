@@ -59,7 +59,8 @@ public class TaskController {
     public Result create(
             @RequestBody Map<String, String> map,
             HttpServletRequest request) {
-
+        System.out.println("-----------------------");
+        System.out.println(map.get("taskId"));
         try {
             Task task = new Task();
 
@@ -111,10 +112,15 @@ public class TaskController {
 
 //        存入task
             Long taskId = SnowFlakeUtil.getNextId();
-            task.setTaskId(taskId);
+            if (map.get("taskId") == null) {
+                task.setTaskId(taskId);
+            } else {
+                task.setTaskId(Long.valueOf(map.get("taskId")));
+            }
+
 
             System.out.println(task.toString());
-            taskService.save(task);
+            taskService.saveOrUpdate(task);
             if (task.getIsDraft()) {
                 return Result.success("保存草稿成功");
             }
