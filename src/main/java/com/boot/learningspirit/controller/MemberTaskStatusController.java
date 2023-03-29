@@ -208,12 +208,15 @@ public class MemberTaskStatusController {
      * @Date: 2023/3/26 10:58
      */
     @PostMapping("correctingTask")
-    public Result correctingTask(@RequestBody Map<String, Object> map) {
+    public Result correctingTask(@RequestBody Map<String, Object> map, HttpServletRequest request) {
 
         if (map.get("statusId") == null) {
             return Result.error("参数异常");
         }
-
+        //获取请求头token
+        String token = request.getHeader("Authorization");
+        //从token中获取openid
+        String openid = jwtUtil.getOpenidFromToken(token);
 
         UpdateWrapper<MemberTaskStatus> updateWrapper = new UpdateWrapper<>();
         updateWrapper
@@ -232,8 +235,8 @@ public class MemberTaskStatusController {
             Long msgId = SnowFlakeUtil.getNextId();
             Message msg = new Message()
                     .setMsgId(msgId)
-                    .setMsgContent("你的" + userTask.getTitle() + "已批改")
-                    .setMsgTitle("作业已批改通知")
+                    .setMsgContent(userService.getById(openid).getUserName() + "(老师)批改了你的" + userTask.getTitle() + "任务，快去看看吧！")
+                    .setMsgTitle("任务通知")
                     .setMsgType(4)
                     .setMessageCreateTime(LocalDateTime.now());
             List<MessageReceive> msgReceiveList = new ArrayList<>(10);

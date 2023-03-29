@@ -17,10 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -147,7 +145,7 @@ public class TaskController {
             Long msgId = SnowFlakeUtil.getNextId();
             Message msg = new Message()
                     .setMsgId(msgId)
-                    .setMsgContent(task.getTitle() + "已发布")
+                    .setMsgContent(userService.getById(openid).getUserName() + "(老师)+发布了" + task.getTitle() + "任务，快去完成吧！")
                     .setMsgTitle("任务通知")
                     .setMsgType(3)
                     .setMessageCreateTime(LocalDateTime.now());
@@ -264,9 +262,9 @@ public class TaskController {
                     .eq("is_draft", isDraft)
                     .like(!isDraft, "receive_class_list", String.valueOf(member.getClassId()))
                     .eq(isDraft, "open_id", openid)
-                    .le(null != endDate, "publish_time", endDate)
-                    .ge(null != beginDate, "publish_time", beginDate)
-                    .lt("publish_time", LocalDateTime.now())
+                    .le(!isDraft && null != endDate, "publish_time", endDate)
+                    .ge(!isDraft && null != beginDate, "publish_time", beginDate)
+                    .lt(!isDraft, "publish_time", LocalDateTime.now())
                     .orderByDesc("publish_time");
             if ("affair".equals(type)) {
                 queryWrapper
@@ -281,6 +279,12 @@ public class TaskController {
             taskList.addAll(taskService.list(queryWrapper));
             queryWrapper.clear();
         }
+        //如果是草稿则根据taskId对taskList进行去重
+        if (isDraft) {
+            taskList = taskList.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(()
+                    -> new TreeSet<>(Comparator.comparing(Task::getTaskId))), ArrayList::new));
+        }
+
         System.out.println("orginTaskList: " + taskList.toString());
         System.out.println(taskList.size());
 //        班级信息

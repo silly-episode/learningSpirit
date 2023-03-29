@@ -68,7 +68,7 @@ public class ClassMemberController {
         Long msgId = SnowFlakeUtil.getNextId();
         Message msg = new Message()
                 .setMsgId(msgId)
-                .setMsgTitle("申请结果")
+                .setMsgTitle("审核通知")
                 .setMsgType(2)
                 .setMessageCreateTime(LocalDateTime.now());
         List<MessageReceive> msgReceiveList = new ArrayList<>(10);
@@ -110,7 +110,7 @@ public class ClassMemberController {
                 banJi.setJoined(banJi.getJoined() + 1);
                 classService.updateById(banJi);
                 //存消息
-                msg.setMsgContent("申请通过，已成功加入" + banJi.getClassName());
+                msg.setMsgContent("你的加入" + banJi.getClassName() + "审核已通过");
                 msgService.messageSave(msg, msgReceiveList);
 
                 return Result.success("加入班级成功");
@@ -120,7 +120,7 @@ public class ClassMemberController {
                 applyClassMemberService.updateById(applyFromDb);
 
                 //存消息
-                msg.setMsgContent("已处理，但系统错误，申请加入" + banJi.getClassName() + "失败");
+                msg.setMsgContent("系统错误，加入" + banJi.getClassName() + "失败");
                 msgService.messageSave(msg, msgReceiveList);
 
                 return Result.error("加入班级失败");
@@ -135,7 +135,7 @@ public class ClassMemberController {
 
 
             //存消息
-            msg.setMsgContent("申请不通过，无法加入" + banJi.getClassName());
+            msg.setMsgContent("你的加入" + banJi.getClassName() + "审核未通过");
             msgService.messageSave(msg, msgReceiveList);
 
             return Result.success("拒绝加入");
@@ -202,7 +202,7 @@ public class ClassMemberController {
     @GetMapping("deleteApply")
     public Result deleteApply(@RequestParam Long applyId) {
         if (applyClassMemberService.removeById(applyId)) {
-            // todo 是否删除消息
+            // todo 删除正在审核的申请加入班级的消息
 
             return Result.success("删除加入请求班级成功");
         } else {
@@ -281,7 +281,7 @@ public class ClassMemberController {
                     .setMsgId(msgId)
                     .setMsgContent(userService.getById(openid).getUserName() +
                             "申请加入" + banJi.getClassName())
-                    .setMsgTitle("申请加入通知")
+                    .setMsgTitle("审核通知")
                     .setMsgType(1)
                     .setMessageCreateTime(LocalDateTime.now())
                     .setOpenId(classMember.getOpenId())

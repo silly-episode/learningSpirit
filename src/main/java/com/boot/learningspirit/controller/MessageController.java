@@ -74,7 +74,7 @@ public class MessageController {
         list.sort(Comparator.comparing(RmDto::getMessageCreateTime).reversed());
         finalPageInfo.setRecords(list);
         finalPageInfo.setTotal(pageInfo.getTotal());
-        return Result.success(pageInfo);
+        return Result.success(finalPageInfo);
     }
 
     /**

@@ -25,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @Accessors(chain = true)
 public class MessageReceive extends Model<MessageReceive> {
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long msgReceiveId;
     //消息接收人
     private String receiveOpenId;
