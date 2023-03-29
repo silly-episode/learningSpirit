@@ -11,31 +11,33 @@
         <result property="classId" column="class_id" jdbcType="INTEGER"/>
         <result property="messageCreateTime" column="message_create_time" jdbcType="TIMESTAMP"/>
         <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="taskId" column="task_id" jdbcType="INTEGER"/>
+        <result property="taskType" column="task_type" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="msgId" useGeneratedKeys="true">
         insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time,
-        type)
+        type, task_id, task_type)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId},
-            #{entity.messageCreateTime}, #{entity.type})
+            #{entity.messageCreateTime}, #{entity.type}, #{entity.taskId}, #{entity.taskType})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="msgId" useGeneratedKeys="true">
         insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time,
-        type)
+        type, task_id, task_type)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId},
-            #{entity.messageCreateTime}, #{entity.type})
+            #{entity.messageCreateTime}, #{entity.type}, #{entity.taskId}, #{entity.taskType})
         </foreach>
         on duplicate key update
         msg_type = values(msg_type) , msg_title = values(msg_title) , msg_content = values(msg_content) , open_id =
         values(open_id) , class_id = values(class_id) , message_create_time = values(message_create_time) , type =
-        values(type)
+        values(type) , task_id = values(task_id) , task_type = values(task_type)
     </insert>
 
 </mapper>

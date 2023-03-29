@@ -86,7 +86,7 @@ public class MemberTaskStatusController {
             } else {
                 queryWrapper.clear();
                 queryWrapper.select("type").eq("open_id", status.getOpenId());
-                type = classMemberService.getOne(queryWrapper).getType();
+                type = classMemberService.list(queryWrapper).get(1).getType();
                 if ("student".equals(type)) {
                     noList.add(status.getUserName());
                 }
@@ -235,9 +235,11 @@ public class MemberTaskStatusController {
             Long msgId = SnowFlakeUtil.getNextId();
             Message msg = new Message()
                     .setMsgId(msgId)
-                    .setMsgContent(userService.getById(openid).getUserName() + "(老师)批改了你的" + userTask.getTitle() + "任务，快去看看吧！")
+                    .setMsgContent(userService.getById(openid).getUserName() + "(老师)批改了你的《" + userTask.getTitle() + "》任务，快去看看吧！")
                     .setMsgTitle("任务通知")
                     .setMsgType(4)
+                    .setTaskId(userTask.getTaskId())
+                    .setTaskType(userTask.getType())
                     .setMessageCreateTime(LocalDateTime.now());
             List<MessageReceive> msgReceiveList = new ArrayList<>(10);
             MessageReceive msgReceive = new MessageReceive()

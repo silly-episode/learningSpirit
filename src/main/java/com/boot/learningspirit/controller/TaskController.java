@@ -129,37 +129,37 @@ public class TaskController {
             List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
 
 
-//        组成最后的要添加的数据
+            //生成消息
+            Long msgId = SnowFlakeUtil.getNextId();
+            Message msg = new Message()
+                    .setMsgId(msgId)
+                    .setMsgContent(userService.getById(openid).getUserName() + "(老师)发布了《" + task.getTitle() + "》任务，快去完成吧！")
+                    .setMsgTitle("任务通知")
+                    .setMsgType(3)
+                    .setTaskId(taskId)
+                    .setTaskType(map.get("type"))
+                    .setMessageCreateTime(LocalDateTime.now());
+            List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+
+//        组成最后的要添加的数据（消息和任务完成情况）
             List<MemberTaskStatus> memberTaskStatusList = new ArrayList<>(classMemberList.size());
             for (ClassMember classMember : classMemberList) {
                 memberTaskStatusList.add(
                         new MemberTaskStatus(
                                 taskId, classMember.getOpenId(),
                                 now, classMember.getClassId(), task.getType()));
-            }
 
+                if ("student".equals(classMember.getType())) {
+                    MessageReceive msgReceive = new MessageReceive()
+                            .setMsgId(msgId)
+                            .setReceiveOpenId(classMember.getOpenId());
+                    msgReceiveList.add(msgReceive);
+                }
+
+            }
             memberTaskStatusService.saveBatch(memberTaskStatusList);
-
-
-            //生成消息
-            Long msgId = SnowFlakeUtil.getNextId();
-            Message msg = new Message()
-                    .setMsgId(msgId)
-                    .setMsgContent(userService.getById(openid).getUserName() + "(老师)+发布了" + task.getTitle() + "任务，快去完成吧！")
-                    .setMsgTitle("任务通知")
-                    .setMsgType(3)
-                    .setMessageCreateTime(LocalDateTime.now());
-            List<MessageReceive> msgReceiveList = new ArrayList<>(10);
-            for (MemberTaskStatus status : memberTaskStatusList) {
-                MessageReceive msgReceive = new MessageReceive()
-                        .setMsgId(msgId)
-                        .setReceiveOpenId(status.getOpenId());
-                msgReceiveList.add(msgReceive);
-            }
             msgService.messageSave(msg, msgReceiveList);
-
             return Result.success();
-
         } catch (Exception e) {
             e.printStackTrace();
         }

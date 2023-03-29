@@ -99,7 +99,7 @@ public class ClassMemberController {
                 applyFromDb.setDeal(true);
                 applyClassMemberService.updateById(applyFromDb);
                 //存消息
-                msg.setMsgContent("班级人数已满,无法加入" + banJi.getClassName());
+                msg.setMsgContent("班级人数已满,无法加入 " + banJi.getClassName());
                 msgService.messageSave(msg, msgReceiveList);
 
                 return Result.error(4061, "班级人数已满,无法同意加入该班级");
@@ -119,7 +119,7 @@ public class ClassMemberController {
                 banJi.setJoined(banJi.getJoined() + 1);
                 classService.updateById(banJi);
                 //存消息
-                msg.setMsgContent("你的加入" + banJi.getClassName() + "审核已通过");
+                msg.setMsgContent("加入 " + banJi.getClassName() + " 审核已通过");
                 msgService.messageSave(msg, msgReceiveList);
 
                 return Result.success("加入班级成功");
@@ -129,7 +129,7 @@ public class ClassMemberController {
                 applyClassMemberService.updateById(applyFromDb);
 
                 //存消息
-                msg.setMsgContent("系统错误，加入" + banJi.getClassName() + "失败");
+                msg.setMsgContent("系统错误，加入 " + banJi.getClassName() + " 失败");
                 msgService.messageSave(msg, msgReceiveList);
 
                 return Result.error("加入班级失败");
@@ -144,14 +144,10 @@ public class ClassMemberController {
 
 
             //存消息
-            msg.setMsgContent("你的加入" + banJi.getClassName() + "审核未通过");
+            msg.setMsgContent("加入 " + banJi.getClassName() + " 审核未通过");
             msgService.messageSave(msg, msgReceiveList);
-
             return Result.success("拒绝加入");
-
         }
-
-
     }
 
     /**
@@ -210,9 +206,29 @@ public class ClassMemberController {
      */
     @GetMapping("deleteApply")
     public Result deleteApply(@RequestParam Long applyId) {
-        if (applyClassMemberService.removeById(applyId)) {
-            // todo 删除正在审核的申请加入班级的消息
 
+        // todo 删除正在审核的申请加入班级的消息
+        ApplyClassMember apply = applyClassMemberService.getById(applyId);
+        if ("正在审核".equals(apply.getResult())) {
+            QueryWrapper<Message> wrapper = new QueryWrapper<>();
+            QueryWrapper<MessageReceive> queryWrapper = new QueryWrapper<>();
+            wrapper
+                    .eq("open_id", apply.getOpenId())
+                    .eq("class_id", apply.getClassId());
+            List<Message> msgList = msgService.list(wrapper);
+            for (Message msg : msgList) {
+                queryWrapper.clear();
+                queryWrapper
+                        .eq("msg_id", msg.getMsgId());
+                MessageReceive msgReceive = msgReceiveService.getOne(queryWrapper);
+                if (!msgReceive.getDeal()) {
+                    msgReceiveService.removeById(msgReceive.getMsgReceiveId());
+                    msgService.removeById(msgReceive.getMsgId());
+                }
+            }
+        }
+
+        if (applyClassMemberService.removeById(applyId)) {
             return Result.success("删除加入请求班级成功");
         } else {
             return Result.error("删除失败");

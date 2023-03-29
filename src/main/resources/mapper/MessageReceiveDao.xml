@@ -6,25 +6,26 @@
         <result property="msgReceiveId" column="msg_receive_id" jdbcType="INTEGER"/>
         <result property="receiveOpenId" column="receive_open_id" jdbcType="VARCHAR"/>
         <result property="msgId" column="msg_id" jdbcType="INTEGER"/>
+        <result property="deal" column="deal" jdbcType="INTEGER"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="msgReceiveId" useGeneratedKeys="true">
-        insert into learningspirit.message_receive(receive_open_id, msg_id)
+        insert into learningspirit.message_receive(receive_open_id, msg_id, deal)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.receiveOpenId}, #{entity.msgId})
+            (#{entity.receiveOpenId}, #{entity.msgId}, #{entity.deal})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="msgReceiveId" useGeneratedKeys="true">
-        insert into learningspirit.message_receive(receive_open_id, msg_id)
+        insert into learningspirit.message_receive(receive_open_id, msg_id, deal)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.receiveOpenId}, #{entity.msgId})
+            (#{entity.receiveOpenId}, #{entity.msgId}, #{entity.deal})
         </foreach>
         on duplicate key update
-        receive_open_id = values(receive_open_id) , msg_id = values(msg_id)
+        receive_open_id = values(receive_open_id) , msg_id = values(msg_id) , deal = values(deal)
     </insert>
 
 </mapper>

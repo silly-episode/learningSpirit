@@ -39,6 +39,10 @@ public class Message extends Model<Message> {
     private Long classId;
     //加入人角色类型
     private String type;
+    //任务Id
+    private Long taskId;
+    //任务类型
+    private String taskType;
     //消息产生时间
     private LocalDateTime messageCreateTime;
 
