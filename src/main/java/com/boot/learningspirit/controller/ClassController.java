@@ -109,10 +109,10 @@ public class ClassController {
                 teacherId.add(classMember.getOpenId());
             }
         }
-        List<String> studentName = new ArrayList<>();
+        List<User> studentName = new ArrayList<>();
         List<User> teacher = new ArrayList<>();
         for (String s : studentId) {
-            studentName.add(userService.getById(s).getUserName());
+            studentName.add(userService.getById(s));
         }
 
         for (String s : teacherId) {
