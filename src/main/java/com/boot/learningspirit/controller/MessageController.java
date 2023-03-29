@@ -67,6 +67,7 @@ public class MessageController {
             RmDto temp = BeanDtoVoUtils.convert(messageService.getById(record.getMsgId()), RmDto.class);
             temp.setReceiveOpenId(record.getReceiveOpenId());
             temp.setMsgReceiveId(record.getMsgReceiveId());
+            temp.setDeal(record.getDeal());
             list.add(temp);
         }
 //        重新生成page和排序

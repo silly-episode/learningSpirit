@@ -21,4 +21,6 @@ public class RmDto extends Message {
     private Long msgReceiveId;
     //消息接收人
     private String receiveOpenId;
+    //是否已读或处理
+    private Boolean deal;
 }

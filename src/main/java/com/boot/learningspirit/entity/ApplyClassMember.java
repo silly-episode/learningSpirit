@@ -43,7 +43,8 @@ public class ApplyClassMember extends Model<ApplyClassMember> {
     //申请班级名称
     @TableField(exist = false)
     private String className;
-
+    @TableField(exist = false)
+    private Long msgReceiveId;
 
     /**
      * 获取主键值

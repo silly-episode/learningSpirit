@@ -2,6 +2,7 @@ package com.boot.learningspirit.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.*;
@@ -45,6 +46,8 @@ public class ClassMemberController {
     private MessageService msgService;
     @Resource
     private UserService userService;
+    @Resource
+    private MessageReceiveService msgReceiveService;
 
     /**
      * @param applyClassMember:
@@ -56,6 +59,12 @@ public class ClassMemberController {
     @PostMapping("judgeClass")
     public Result joinClass(@RequestBody ApplyClassMember applyClassMember) {
 
+        //更改消息中的是否处理字段
+        UpdateWrapper<MessageReceive> messageReceiveUpdateWrapper = new UpdateWrapper<>();
+        messageReceiveUpdateWrapper
+                .eq("msg_receive_id", applyClassMember.getMsgReceiveId())
+                .set("deal", true);
+        msgReceiveService.update(messageReceiveUpdateWrapper);
 
         //处理申请不要删除申请表的记录
         QueryWrapper<ApplyClassMember> applyClassMemberQueryWrapper = new QueryWrapper<>();
@@ -285,6 +294,7 @@ public class ClassMemberController {
                     .setMsgType(1)
                     .setMessageCreateTime(LocalDateTime.now())
                     .setOpenId(classMember.getOpenId())
+                    .setType(classMember.getType())
                     .setClassId(classMember.getClassId());
             List<MessageReceive> msgReceiveList = new ArrayList<>(10);
             MessageReceive msgReceive = new MessageReceive()
