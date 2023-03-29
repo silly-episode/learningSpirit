@@ -96,7 +96,7 @@ public class ClassController {
             return Result.error("班级不存在");
         }
         banJi.setClassCreator(userService.getById(banJi.getClassCreator()).getUserName());
-//        banJi.setClassAdmin(userService.getById(banJi.getClassAdmin()).getUserName());
+        banJi.setAdminName(userService.getById(banJi.getClassAdmin()).getUserName());
         QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("class_id", banJi.getClassId());
         List<String> studentId = new ArrayList<>();

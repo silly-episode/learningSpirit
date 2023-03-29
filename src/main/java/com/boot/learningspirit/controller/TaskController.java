@@ -112,7 +112,7 @@ public class TaskController {
 
 //        存入task
             Long taskId = SnowFlakeUtil.getNextId();
-            if (map.get("taskId") == null) {
+            if ("".equals(map.get("taskId"))) {
                 task.setTaskId(taskId);
             } else {
                 task.setTaskId(Long.valueOf(map.get("taskId")));
@@ -144,7 +144,7 @@ public class TaskController {
                     .setMsgContent(userService.getById(openid).getUserName() + "(老师)发布了《" + task.getTitle() + "》任务，快去完成吧！")
                     .setMsgTitle("任务通知")
                     .setMsgType(3)
-                    .setTaskId(taskId)
+                    .setTaskId(task.getTaskId())
                     .setTaskType(map.get("type"))
                     .setMessageCreateTime(LocalDateTime.now());
             List<MessageReceive> msgReceiveList = new ArrayList<>(10);
@@ -154,7 +154,7 @@ public class TaskController {
             for (ClassMember classMember : classMemberList) {
                 memberTaskStatusList.add(
                         new MemberTaskStatus(
-                                taskId, classMember.getOpenId(),
+                                task.getTaskId(), classMember.getOpenId(),
                                 now, classMember.getClassId(), task.getType()));
 
                 if ("student".equals(classMember.getType())) {
@@ -299,7 +299,10 @@ public class TaskController {
 //        班级信息
         QueryWrapper<BanJi> banJiWrapper = new QueryWrapper<>();
         banJiWrapper.select("class_id,class_name,joined,teacher_count").in("class_id", classIdList);
-        List<BanJi> banJiList = classService.list(banJiWrapper);
+        List<BanJi> banJiList = null;
+        if (classIdList.size() > 0) {
+            banJiList = classService.list(banJiWrapper);
+        }
 
 
         QueryWrapper<MemberTaskStatus> memberTaskStatusQueryWrapper = new QueryWrapper<>();
@@ -309,7 +312,11 @@ public class TaskController {
                 .eq("status", "已完成")
                 .in("class_id", classIdList)
                 .groupBy("class_id", "task_id");
-        List<MemberTaskStatus> statusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
+        List<MemberTaskStatus> statusList = null;
+        if (classIdList.size() > 0) {
+            statusList = memberTaskStatusService.list(memberTaskStatusQueryWrapper);
+        }
+
 
         System.out.println("classIdList: " + classIdList);
         //        个人完成情况

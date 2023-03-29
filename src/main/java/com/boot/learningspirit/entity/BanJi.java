@@ -2,6 +2,7 @@ package com.boot.learningspirit.entity;
 
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -43,6 +44,8 @@ public class BanJi extends Model<BanJi> {
     //    非学生人数
     private Integer teacherCount;
 
+    @TableField(exist = false)
+    private String adminName;
 
     /**
      * 获取主键值
@@ -51,6 +54,7 @@ public class BanJi extends Model<BanJi> {
      */
     @Override
     public Serializable pkVal() {
+
         return this.classId;
     }
 }

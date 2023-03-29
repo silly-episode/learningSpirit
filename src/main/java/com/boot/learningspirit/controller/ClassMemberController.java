@@ -70,7 +70,8 @@ public class ClassMemberController {
         QueryWrapper<ApplyClassMember> applyClassMemberQueryWrapper = new QueryWrapper<>();
         applyClassMemberQueryWrapper
                 .eq("open_id", applyClassMember.getOpenId())
-                .eq("class_id", applyClassMember.getClassId());
+                .eq("class_id", applyClassMember.getClassId())
+                .eq("deal", false);
         ApplyClassMember applyFromDb = applyClassMemberService.getOne(applyClassMemberQueryWrapper);
 
         //将结果发送消息到申请人
@@ -174,6 +175,7 @@ public class ClassMemberController {
         banJi.setJoined(banJi.getJoined() - 1);
         classService.updateById(banJi);
 
+
         //发送删除的消息
         Long msgId = SnowFlakeUtil.getNextId();
         Message msg = new Message()
@@ -215,9 +217,10 @@ public class ClassMemberController {
             for (Message msg : msgList) {
                 queryWrapper.clear();
                 queryWrapper
-                        .eq("msg_id", msg.getMsgId());
+                        .eq("msg_id", msg.getMsgId())
+                        .and(e -> e.isNull("deal").or().eq("deal", false));
                 MessageReceive msgReceive = msgReceiveService.getOne(queryWrapper);
-                if (!msgReceive.getDeal()) {
+                if (msgReceive != null && (msgReceive.getDeal() == null || !msgReceive.getDeal())) {
                     msgReceiveService.removeById(msgReceive.getMsgReceiveId());
                     msgService.removeById(msgReceive.getMsgId());
                 }
@@ -281,14 +284,23 @@ public class ClassMemberController {
         QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("open_id", openid);
         ClassMember classMemberFromDb = classMemberService.getOne(queryWrapper);
-        if (classMemberFromDb.getClassId().equals(classMember.getClassId())) {
+        if (classMemberFromDb != null && classMemberFromDb.getClassId().equals(classMember.getClassId())) {
             return Result.error(4060, "你已经加入了该班级");
+        }
+        QueryWrapper<ApplyClassMember> applyClassMemberQueryWrapper = new QueryWrapper<>();
+        applyClassMemberQueryWrapper
+                .eq("open_id", classMember.getOpenId())
+                .eq("class_id", classMember.getClassId())
+                .eq("result", "正在审核");
+
+        if (applyClassMemberService.getOne(applyClassMemberQueryWrapper) != null) {
+            return Result.error(4059, "你的申请在审核中");
         }
 
 
 //        如果班级已满则不能加入班级
         BanJi banJi = classService.getById(classMember.getClassId());
-        if (banJi.getJoined().equals(banJi.getClassNum())) {
+        if (banJi != null && banJi.getJoined().equals(banJi.getClassNum())) {
             return Result.error(4061, "班级人数已满，无法申请加入该班级");
         }
 

@@ -92,7 +92,8 @@ public class MemberTaskStatusController {
             } else {
                 queryWrapper.clear();
                 queryWrapper.select("type").eq("open_id", status.getOpenId());
-                type = classMemberService.list(queryWrapper).get(1).getType();
+                List<ClassMember> classMemberList = classMemberService.list(queryWrapper);
+                type = classMemberList.get(0).getType();
                 if ("student".equals(type)) {
                     noList.add(status.getUserName());
                 }
@@ -120,13 +121,18 @@ public class MemberTaskStatusController {
         String openid = jwtUtil.getOpenidFromToken(token);
 //        获取任务的信息
         Task task = taskService.getById(taskId);
+        if (task == null) {
+            return Result.error(4071, "该任务不存在");
+        }
         task.setPublisher(userService.getById(task.getOpenId()).getUserName());
 //        获取这个成员的完成情况
         QueryWrapper<MemberTaskStatus> wrapper = new QueryWrapper<>();
         wrapper.eq("task_id", taskId).eq("open_id", openid);
         MemberTaskStatus status = memberTaskStatusService.getOne(wrapper);
-        status.setUserName(userService.getById(status.getOpenId()).getUserName());
-        task.setMemberTaskStatus(status);
+        if (status != null) {
+            status.setUserName(userService.getById(status.getOpenId()).getUserName());
+            task.setMemberTaskStatus(status);
+        }
         return Result.success(task);
     }
 
