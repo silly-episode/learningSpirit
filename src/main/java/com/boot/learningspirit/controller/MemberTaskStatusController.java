@@ -5,17 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.dto.GradeJsonDto;
-import com.boot.learningspirit.entity.ClassMember;
-import com.boot.learningspirit.entity.MemberTaskStatus;
-import com.boot.learningspirit.entity.Task;
+import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
 import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
+import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +46,8 @@ public class MemberTaskStatusController {
     private ClassMemberService classMemberService;
     @Resource
     private QuestionBankService questionBankService;
+    @Resource
+    private MessageService msgService;
 
     /**
      * @param taskId:
@@ -208,6 +210,11 @@ public class MemberTaskStatusController {
     @PostMapping("correctingTask")
     public Result correctingTask(@RequestBody Map<String, Object> map) {
 
+        if (map.get("statusId") == null) {
+            return Result.error("参数异常");
+        }
+
+
         UpdateWrapper<MemberTaskStatus> updateWrapper = new UpdateWrapper<>();
         updateWrapper
                 .eq("status_id", map.get("statusId"))
@@ -217,6 +224,26 @@ public class MemberTaskStatusController {
                 .set("file_list", map.get("fileList"));
         //    存入数据库
         if (memberTaskStatusService.update(updateWrapper)) {
+
+            MemberTaskStatus memberTaskStatus = memberTaskStatusService.getById((Serializable) map.get("statusId"));
+            Task userTask = taskService.getById(memberTaskStatus.getTaskId());
+
+            //存入消息
+            Long msgId = SnowFlakeUtil.getNextId();
+            Message msg = new Message()
+                    .setMsgId(msgId)
+                    .setMsgContent("你的" + userTask.getTitle() + "已批改")
+                    .setMsgTitle("作业已批改通知")
+                    .setMsgType(4)
+                    .setMessageCreateTime(LocalDateTime.now());
+            List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+            MessageReceive msgReceive = new MessageReceive()
+                    .setMsgId(msgId)
+                    .setReceiveOpenId(memberTaskStatus.getOpenId());
+            msgReceiveList.add(msgReceive);
+            msgService.messageSave(msg, msgReceiveList);
+
+
             return Result.success("批改录入成功");
         } else {
             return Result.error("批改录入失败");

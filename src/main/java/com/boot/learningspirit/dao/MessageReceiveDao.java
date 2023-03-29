@@ -3,6 +3,7 @@ package com.boot.learningspirit.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.boot.learningspirit.entity.MessageReceive;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
  * @author makejava
  * @since 2023-03-28 20:02:10
  */
+@Repository
 public interface MessageReceiveDao extends BaseMapper<MessageReceive> {
 
     /**

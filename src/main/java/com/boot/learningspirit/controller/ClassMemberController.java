@@ -4,21 +4,19 @@ package com.boot.learningspirit.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
-import com.boot.learningspirit.entity.ApplyClassMember;
-import com.boot.learningspirit.entity.BanJi;
-import com.boot.learningspirit.entity.ClassMember;
-import com.boot.learningspirit.service.ApplyClassMemberService;
-import com.boot.learningspirit.service.ClassMemberService;
-import com.boot.learningspirit.service.ClassService;
-import com.boot.learningspirit.service.MemberTaskStatusService;
+import com.boot.learningspirit.entity.*;
+import com.boot.learningspirit.service.*;
 import com.boot.learningspirit.utils.JwtUtil;
+import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +41,10 @@ public class ClassMemberController {
     private ApplyClassMemberService applyClassMemberService;
     @Resource
     private MemberTaskStatusService memberTaskStatusService;
+    @Resource
+    private MessageService msgService;
+    @Resource
+    private UserService userService;
 
     /**
      * @param applyClassMember:
@@ -55,22 +57,42 @@ public class ClassMemberController {
     public Result joinClass(@RequestBody ApplyClassMember applyClassMember) {
 
 
-        //处理申请则要删除申请表的记录
+        //处理申请不要删除申请表的记录
         QueryWrapper<ApplyClassMember> applyClassMemberQueryWrapper = new QueryWrapper<>();
         applyClassMemberQueryWrapper
                 .eq("open_id", applyClassMember.getOpenId())
                 .eq("class_id", applyClassMember.getClassId());
         ApplyClassMember applyFromDb = applyClassMemberService.getOne(applyClassMemberQueryWrapper);
 
+        //将结果发送消息到申请人
+        Long msgId = SnowFlakeUtil.getNextId();
+        Message msg = new Message()
+                .setMsgId(msgId)
+                .setMsgTitle("申请结果")
+                .setMsgType(2)
+                .setMessageCreateTime(LocalDateTime.now());
+        List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+        MessageReceive msgReceive = new MessageReceive()
+                .setMsgId(msgId)
+                .setReceiveOpenId(applyClassMember.getOpenId());
+        msgReceiveList.add(msgReceive);
+
+//        班级基础信息
+        BanJi banJi = classService.getById(applyClassMember.getClassId());
+
 //        可以加入班级
         if ("同意加入".equals(applyClassMember.getResult())) {
 
             //        如果班级已满则不能加入班级
-            BanJi banJi = classService.getById(applyClassMember.getClassId());
+
             if (banJi.getJoined().equals(banJi.getClassNum())) {
                 applyFromDb.setResult("班级人数已满");
                 applyFromDb.setDeal(true);
                 applyClassMemberService.updateById(applyFromDb);
+                //存消息
+                msg.setMsgContent("班级人数已满,无法加入" + banJi.getClassName());
+                msgService.messageSave(msg, msgReceiveList);
+
                 return Result.error(4061, "班级人数已满,无法同意加入该班级");
             }
             ClassMember classMember = new ClassMember();
@@ -87,11 +109,20 @@ public class ClassMemberController {
                 }
                 banJi.setJoined(banJi.getJoined() + 1);
                 classService.updateById(banJi);
+                //存消息
+                msg.setMsgContent("申请通过，已成功加入" + banJi.getClassName());
+                msgService.messageSave(msg, msgReceiveList);
+
                 return Result.success("加入班级成功");
             } else {
                 applyFromDb.setResult("已处理，但系统错误");
                 applyFromDb.setDeal(true);
                 applyClassMemberService.updateById(applyFromDb);
+
+                //存消息
+                msg.setMsgContent("已处理，但系统错误，申请加入" + banJi.getClassName() + "失败");
+                msgService.messageSave(msg, msgReceiveList);
+
                 return Result.error("加入班级失败");
             }
         }
@@ -101,6 +132,11 @@ public class ClassMemberController {
             applyFromDb.setResult("拒绝加入");
             applyFromDb.setDeal(true);
             applyClassMemberService.updateById(applyFromDb);
+
+
+            //存消息
+            msg.setMsgContent("申请不通过，无法加入" + banJi.getClassName());
+            msgService.messageSave(msg, msgReceiveList);
 
             return Result.success("拒绝加入");
 
@@ -132,6 +168,23 @@ public class ClassMemberController {
             }
             banJi.setJoined(banJi.getJoined() - 1);
             classService.updateById(banJi);
+
+            //发送删除的消息
+            Long msgId = SnowFlakeUtil.getNextId();
+            Message msg = new Message()
+                    .setMsgId(msgId)
+                    .setMsgContent("已被管理员移出" + banJi.getClassName())
+                    .setMsgTitle("退出班级通知")
+                    .setMsgType(5)
+                    .setMessageCreateTime(LocalDateTime.now());
+            List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+            MessageReceive msgReceive = new MessageReceive()
+                    .setMsgId(msgId)
+                    .setReceiveOpenId(openId);
+            msgReceiveList.add(msgReceive);
+            msgService.messageSave(msg, msgReceiveList);
+
+
             return Result.success("删除该成员成功");
         } else {
             return Result.error("删除失败");
@@ -149,6 +202,8 @@ public class ClassMemberController {
     @GetMapping("deleteApply")
     public Result deleteApply(@RequestParam Long applyId) {
         if (applyClassMemberService.removeById(applyId)) {
+            // todo 是否删除消息
+
             return Result.success("删除加入请求班级成功");
         } else {
             return Result.error("删除失败");
@@ -219,6 +274,26 @@ public class ClassMemberController {
         classMember.setApplyTime(LocalDateTime.now());
 //        申请加入班级
         if (applyClassMemberService.save(classMember)) {
+
+//发送申请消息给班级管理员
+            Long msgId = SnowFlakeUtil.getNextId();
+            Message msg = new Message()
+                    .setMsgId(msgId)
+                    .setMsgContent(userService.getById(openid).getUserName() +
+                            "申请加入" + banJi.getClassName())
+                    .setMsgTitle("申请加入通知")
+                    .setMsgType(1)
+                    .setMessageCreateTime(LocalDateTime.now())
+                    .setOpenId(classMember.getOpenId())
+                    .setClassId(classMember.getClassId());
+            List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+            MessageReceive msgReceive = new MessageReceive()
+                    .setMsgId(msgId)
+                    .setReceiveOpenId(banJi.getClassAdmin());
+            msgReceiveList.add(msgReceive);
+            msgService.messageSave(msg, msgReceiveList);
+
+
             return Result.success("申请加入班级请求成功");
         } else {
             return Result.error("申请失败");

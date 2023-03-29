@@ -10,28 +10,32 @@
         <result property="openId" column="open_id" jdbcType="VARCHAR"/>
         <result property="classId" column="class_id" jdbcType="INTEGER"/>
         <result property="messageCreateTime" column="message_create_time" jdbcType="TIMESTAMP"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="msgId" useGeneratedKeys="true">
-        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time)
+        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time,
+        type)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId},
-            #{entity.messageCreateTime})
+            #{entity.messageCreateTime}, #{entity.type})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="msgId" useGeneratedKeys="true">
-        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time)
+        insert into learningspirit.message(msg_type, msg_title, msg_content, open_id, class_id, message_create_time,
+        type)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.msgType}, #{entity.msgTitle}, #{entity.msgContent}, #{entity.openId}, #{entity.classId},
-            #{entity.messageCreateTime})
+            #{entity.messageCreateTime}, #{entity.type})
         </foreach>
         on duplicate key update
         msg_type = values(msg_type) , msg_title = values(msg_title) , msg_content = values(msg_content) , open_id =
-        values(open_id) , class_id = values(class_id) , message_create_time = values(message_create_time)
+        values(open_id) , class_id = values(class_id) , message_create_time = values(message_create_time) , type =
+        values(type)
     </insert>
 
 </mapper>

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -21,9 +22,10 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Accessors(chain = true)
 public class Message extends Model<Message> {
     //消息ID
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.INPUT)
     private Long msgId;
     //消息类别
     private Integer msgType;
@@ -31,12 +33,15 @@ public class Message extends Model<Message> {
     private String msgTitle;
     //内容
     private String msgContent;
-
+    //加入人id
     private String openId;
-
+    //加入班级id
     private Long classId;
+    //加入人角色类型
+    private String type;
     //消息产生时间
     private LocalDateTime messageCreateTime;
+
 
 //    @TableField(exist = false)
 //    private List<MessageReceive> MessageReceive;
