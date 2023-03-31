@@ -132,8 +132,11 @@ public class MemberTaskStatusController {
         if (status != null) {
             status.setUserName(userService.getById(status.getOpenId()).getUserName());
             task.setMemberTaskStatus(status);
+            return Result.success(task);
+        } else {
+            return Result.error(4072, "该任务暂未开放");
         }
-        return Result.success(task);
+
     }
 
 
