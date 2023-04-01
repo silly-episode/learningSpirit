@@ -2,8 +2,10 @@ package com.boot.learningspirit.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.dto.BanJiDto;
+import com.boot.learningspirit.dto.ClassPage;
 import com.boot.learningspirit.entity.BanJi;
 import com.boot.learningspirit.entity.ClassMember;
 import com.boot.learningspirit.entity.User;
@@ -46,6 +48,60 @@ public class ClassController {
 
     @Resource
     private ClassMemberService classMemberService;
+
+    /**
+     * @param banJi:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 修改或保存
+     * @Date: 2023/4/1 11:19
+     */
+    @PostMapping("saveOrUpdateClass")
+    public Result saveOrUpdateClass(@RequestBody BanJi banJi) {
+        if (classService.saveOrUpdate(banJi)) {
+            return Result.success();
+        } else {
+            return Result.error("修改失败");
+        }
+    }
+
+
+    /**
+     * @param classPage:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 分页查询
+     * @Date: 2023/4/1 15:22
+     */
+    @PostMapping("classPage")
+    public Result classPage(@RequestBody ClassPage classPage) {
+        Page<BanJi> pageInfo = new Page<>(classPage.getPageNum(), classPage.getPageSize(), 0);
+        String queryName = "%" + classPage.getQueryName() + "%";
+        System.out.println(queryName);
+        List<BanJi> banJiList = classService.classPage(queryName,
+                (classPage.getPageNum() - 1) * classPage.getPageSize(),
+                classPage.getPageSize());
+        if (banJiList.size() > 0) {
+            pageInfo.setTotal(banJiList.get(0).getTotalCount());
+            pageInfo.setRecords(banJiList);
+        }
+        return Result.success(pageInfo);
+    }
+
+    /*
+     * @param classId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 删除班级
+     * @Date: 2023/4/1 15:39
+     */
+    @GetMapping("deleteClass")
+    public Result deleteClass(@RequestParam Long classId) {
+
+
+        return Result.success();
+    }
+
 
     /**
      * @param banJi:

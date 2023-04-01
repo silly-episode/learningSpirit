@@ -13,31 +13,32 @@
         <result property="orderId" column="order_id" jdbcType="INTEGER"/>
         <result property="module" column="module" jdbcType="VARCHAR"/>
         <result property="moduleId" column="module_id" jdbcType="INTEGER"/>
+        <result property="uploadId" column="upload_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!-- 批量插入 -->
     <insert id="insertBatch" keyProperty="questionId" useGeneratedKeys="true">
         insert into learningspirit.question_bank(subject_kind, question_kind, content, choice, answer,
-        question_create_time, order_id, module, module_id)
+        question_create_time, order_id, module, module_id, upload_id)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.subjectKind}, #{entity.questionKind}, #{entity.content}, #{entity.choice}, #{entity.answer},
-            #{entity.questionCreateTime}, #{entity.orderId}, #{entity.module}, #{entity.moduleId})
+            #{entity.questionCreateTime}, #{entity.orderId}, #{entity.module}, #{entity.moduleId}, #{entity.uploadId})
         </foreach>
     </insert>
     <!-- 批量插入或按主键更新 -->
     <insert id="insertOrUpdateBatch" keyProperty="questionId" useGeneratedKeys="true">
         insert into learningspirit.question_bank(subject_kind, question_kind, content, choice, answer,
-        question_create_time, order_id, module, module_id)
+        question_create_time, order_id, module, module_id, upload_id)
         values
         <foreach collection="entities" item="entity" separator=",">
             (#{entity.subjectKind}, #{entity.questionKind}, #{entity.content}, #{entity.choice}, #{entity.answer},
-            #{entity.questionCreateTime}, #{entity.orderId}, #{entity.module}, #{entity.moduleId})
+            #{entity.questionCreateTime}, #{entity.orderId}, #{entity.module}, #{entity.moduleId}, #{entity.uploadId})
         </foreach>
         on duplicate key update
         subject_kind = values(subject_kind) , question_kind = values(question_kind) , content = values(content) , choice
         = values(choice) , answer = values(answer) , question_create_time = values(question_create_time) , order_id =
-        values(order_id) , module = values(module) , module_id = values(module_id)
+        values(order_id) , module = values(module) , module_id = values(module_id) , upload_id = values(upload_id)
     </insert>
 
 </mapper>

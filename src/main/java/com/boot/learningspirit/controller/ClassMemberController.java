@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.dto.TeacherDto;
 import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
+import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,62 @@ public class ClassMemberController {
     private UserService userService;
     @Resource
     private MessageReceiveService msgReceiveService;
+
+
+    /**
+     * @param classId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取班级人员列表
+     * @Date: 2023/4/1 11:06
+     */
+    @GetMapping("getClassMemberList")
+    public Result getClassMemberList(@RequestParam Long classId) {
+//        初始化
+        List<User> studentUserList = new ArrayList<>();
+        List<User> teacherUserList = new ArrayList<>();
+        Map<String, List<User>> data = new HashMap<>();
+//        查询班级所有成员
+        QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("class_id", classId);
+        List<ClassMember> classMemberList = classMemberService.list(queryWrapper);
+
+//        查询用户详细和分组数据
+        for (ClassMember member : classMemberList) {
+            User user = userService.getById(member.getOpenId());
+            if ("student".equals(member.getType())) {
+                studentUserList.add(user);
+            } else {
+                teacherUserList.add(user);
+            }
+        }
+//        拼装数据
+        data.put("studentUserList", studentUserList);
+        data.put("teacherUserList", teacherUserList);
+        return Result.success(data);
+    }
+
+    /**
+     * @param classId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 获取班级老师
+     * @Date: 2023/4/1 11:28
+     */
+    @GetMapping("getClassTeacher")
+    public Result getClassTeacher(@RequestParam Long classId) {
+        QueryWrapper<ClassMember> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("class_id", classId).eq("type", "teacher");
+        List<ClassMember> classMemberList = classMemberService.list(queryWrapper);
+        List<TeacherDto> teacherList = new ArrayList<>(100);
+        for (ClassMember member : classMemberList) {
+            User user = userService.getById(member);
+            if (user != null) {
+                teacherList.add(BeanDtoVoUtils.convert(user, TeacherDto.class));
+            }
+        }
+        return Result.success(teacherList);
+    }
 
     /**
      * @param applyClassMember:

@@ -54,6 +54,8 @@ public class QuestionBank extends Model<QuestionBank> {
     private String module;
     // 题库id
     private Long moduleId;
+
+    private String uploadId;
     //  选项的列表
     @TableField(exist = false)
     private List<String> choiceList;
@@ -61,6 +63,8 @@ public class QuestionBank extends Model<QuestionBank> {
     @TableField(exist = false)
     private Integer bankCount;
 
+    @TableField(exist = false)
+    private String uploadName;
 
     /**
      * 获取主键值
@@ -69,6 +73,7 @@ public class QuestionBank extends Model<QuestionBank> {
      */
     @Override
     public Serializable pkVal() {
+
         return this.questionId;
     }
 }

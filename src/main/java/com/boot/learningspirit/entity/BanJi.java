@@ -47,6 +47,12 @@ public class BanJi extends Model<BanJi> {
     @TableField(exist = false)
     private String adminName;
 
+    @TableField(exist = false)
+    private String creatorName;
+
+    @TableField(exist = false)
+    private Integer totalCount;
+
     /**
      * 获取主键值
      *

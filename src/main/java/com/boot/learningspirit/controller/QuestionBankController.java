@@ -3,6 +3,7 @@ package com.boot.learningspirit.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.excel.ExcelListener;
 import com.boot.learningspirit.common.result.Result;
@@ -10,11 +11,15 @@ import com.boot.learningspirit.entity.QuestionBank;
 import com.boot.learningspirit.entity.Task;
 import com.boot.learningspirit.service.QuestionBankService;
 import com.boot.learningspirit.service.TaskService;
+import com.boot.learningspirit.service.UserService;
+import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,6 +40,10 @@ public class QuestionBankController {
     private QuestionBankService questionBankService;
     @Resource
     private TaskService taskService;
+    @Autowired
+    JwtUtil jwtUtil;
+    @Resource
+    private UserService userService;
 
     /**
      * @param file:
@@ -45,13 +54,18 @@ public class QuestionBankController {
      * @Date: 2023/3/26 13:15
      */
     @PostMapping("upload")
-    public Result upload(MultipartFile file, @RequestParam String name) throws IOException {
+    public Result upload(MultipartFile file, @RequestParam String name, HttpServletRequest request) throws IOException {
+        //获取请求头token
+        String token = request.getHeader("Authorization");
+        //从token中获取openid
+        String openid = jwtUtil.getOpenidFromToken(token);
+
         String module = name.substring(0, name.lastIndexOf("."));
         Long moduleId = SnowFlakeUtil.getNextId();
         EasyExcel.read(
                         file.getInputStream(),
                         QuestionBank.class,
-                        new ExcelListener(questionBankService, moduleId, module))
+                        new ExcelListener(questionBankService, moduleId, module, openid))
                 .sheet().doRead();
         return Result.success();
     }
@@ -74,6 +88,9 @@ public class QuestionBankController {
 //        根据QuestionBank中的moduleId对list去重
         list = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(()
                 -> new TreeSet<>(Comparator.comparing(QuestionBank::getModuleId))), ArrayList::new));
+        for (QuestionBank bank : list) {
+            bank.setUploadName(userService.getById(bank.getUploadId()).getUserName());
+        }
         return Result.success(list);
     }
 
@@ -146,10 +163,7 @@ public class QuestionBankController {
             Long bankMaxCount = questionBankService.count(
                     new QueryWrapper<QuestionBank>()
                             .eq("module_id", moduleId));
-            System.out.println(set.size());
-            System.out.println(ran.nextInt(Math.toIntExact(bankMaxCount)) + 1);
-            System.out.println(qNumber);
-            System.out.println(set.size() != qNumber);
+
             while (set.size() != qNumber) {
                 System.out.println("123");
                 Integer r = ran.nextInt(Math.toIntExact(bankMaxCount)) + 1;
@@ -174,8 +188,28 @@ public class QuestionBankController {
         for (QuestionBank bank : list) {
             bank.setChoiceList(Arrays.asList(bank.getChoice().split("\\s+")));
         }
-
         return Result.success(list);
+    }
+
+    /**
+     * @param moduleId:
+     * @param moduleName:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 更改题库名字
+     * @Date: 2023/4/1 16:00
+     */
+    @GetMapping("updateBankName")
+    public Result updateBankName(@RequestParam Long moduleId, @RequestParam String moduleName) {
+        UpdateWrapper<QuestionBank> updateWrapper = new UpdateWrapper<>();
+        updateWrapper
+                .set(!"".equals(moduleName) && moduleName != null, "module", moduleName)
+                .eq("module_id", moduleId);
+        if (questionBankService.update(updateWrapper)) {
+            return Result.success();
+        } else {
+            return Result.error("更改失败");
+        }
     }
 
 }

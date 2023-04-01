@@ -27,7 +27,7 @@ public class FileController {
     @Resource
     private MinIOUtils minioUtils;
 
-    @GetMapping("/")
+    @GetMapping("a")
     public String test() {
         return "Test";
     }

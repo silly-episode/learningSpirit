@@ -25,5 +25,10 @@ public class ClassServiceImpl extends ServiceImpl<ClassDao, BanJi> implements Cl
     public List<BanJi> getBanJiList(String openId) {
         return classDao.getBanJiList(openId);
     }
+
+    @Override
+    public List<BanJi> classPage(String queryName, Integer offSet, Integer limit) {
+        return classDao.classPage(queryName, offSet, limit);
+    }
 }
 

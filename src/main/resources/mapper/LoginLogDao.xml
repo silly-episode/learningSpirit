@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.LoginLogDao">
+
+    <resultMap type="com.boot.learningspirit.entity.LoginLog" id="LoginLogMap">
+        <result property="logId" column="log_id" jdbcType="INTEGER"/>
+        <result property="loginTime" column="login_time" jdbcType="TIMESTAMP"/>
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="logRemark" column="log_remark" jdbcType="VARCHAR"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="logId" useGeneratedKeys="true">
+        insert into learningspirit.login_log(login_time, open_id, nick_name, log_remark, role)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.loginTime}, #{entity.openId}, #{entity.nickName}, #{entity.logRemark}, #{entity.role})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="logId" useGeneratedKeys="true">
+        insert into learningspirit.login_log(login_time, open_id, nick_name, log_remark, role)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.loginTime}, #{entity.openId}, #{entity.nickName}, #{entity.logRemark}, #{entity.role})
+        </foreach>
+        on duplicate key update
+        login_time = values(login_time) , open_id = values(open_id) , nick_name = values(nick_name) , log_remark =
+        values(log_remark) , role = values(role)
+    </insert>
+
+</mapper>
+

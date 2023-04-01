@@ -32,16 +32,18 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
     private final QuestionBankService questionBankService;
     private final Long moduleId;
     private final String module;
+    private final String uploadId;
 
     /**
      * 缓存的数据
      */
     private List<QuestionBank> cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
 
-    public ExcelListener(QuestionBankService questionBankService, Long moduleId, String module) {
+    public ExcelListener(QuestionBankService questionBankService, Long moduleId, String module, String uploadId) {
         this.questionBankService = questionBankService;
         this.moduleId = moduleId;
         this.module = module;
+        this.uploadId = uploadId;
     }
 
 
@@ -73,6 +75,7 @@ public class ExcelListener extends AnalysisEventListener<QuestionBank> {
         data.setModule(this.module);
         data.setModuleId(this.moduleId);
         data.setOrderId(count++);
+        data.setUploadId(uploadId);
         cachedDataList.add(data);
         // 达到BATCH_COUNT了，需要去存储一次数据库，防止数据几万条数据在内存，容易OOM
         if (cachedDataList.size() >= BATCH_COUNT) {

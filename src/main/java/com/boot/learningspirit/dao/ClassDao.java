@@ -3,6 +3,7 @@ package com.boot.learningspirit.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.boot.learningspirit.entity.BanJi;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,6 +37,20 @@ public interface ClassDao extends BaseMapper<BanJi> {
 
     List<BanJi> getBanJiList(@Param("openId") String openId);
 
+    @Select("select " +
+            "(select count(1) from learningspirit.ban_ji b " +
+            "  left join learningspirit.user x on b.class_admin=x.open_id " +
+            "  left join learningspirit.user y on b.class_creator=y.open_id " +
+            "  where b.class_name like #{queryName} or " +
+            "  x.user_name like #{queryName} or " +
+            "  y.user_name like #{queryName}) " +
+            " as totalCount , b.* ,x.user_name as adminName,y.user_name as creatorName from learningspirit.ban_ji b " +
+            "left join learningspirit.user x on b.class_admin=x.open_id " +
+            "left join learningspirit.user y on b.class_creator=y.open_id " +
+            "where b.class_name like #{queryName} or " +
+            "x.user_name like #{queryName} or " +
+            "y.user_name like #{queryName} order by b.class_create_time limit #{offSet},#{limit}")
+    List<BanJi> classPage(String queryName, Integer offSet, Integer limit);
 
 }
 

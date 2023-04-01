@@ -15,5 +15,7 @@ public interface ClassService extends IService<BanJi> {
 
 
     List<BanJi> getBanJiList(String openId);
+
+    List<BanJi> classPage(String queryName, Integer offSet, Integer limit);
 }
 
