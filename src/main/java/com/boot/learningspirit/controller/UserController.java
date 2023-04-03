@@ -168,14 +168,17 @@ public class UserController {
 
 
     /**
-     * @param userType:
      * @Return: Result
      * @Author: DengYinzhe
      * @Description: TODO 获取类型用户
      * @Date: 2023/4/1 10:53
      */
-    @GetMapping("getTypeUser")
-    public Result getTypeUser(@RequestParam String userType) {
+    @PostMapping("getTypeUser")
+    public Result getTypeUser(@RequestBody Map<String, String> map) {
+        String userType = map.get("userType");
+        if (userType == null) {
+            return Result.error("参数错误");
+        }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("role", userType);
         List<User> userList = userService.list(queryWrapper);
