@@ -59,12 +59,8 @@ public class ClassMemberController {
      * @Description: TODO 获取班级人员列表
      * @Date: 2023/4/1 11:06
      */
-    @PostMapping("getClassMemberList")
-    public Result getClassMemberList(@RequestBody Map<String, Long> map) {
-        Long classId = map.get("classId");
-        if (classId == null) {
-            return Result.error("参数错误");
-        }
+    @GetMapping("getClassMemberList")
+    public Result getClassMemberList(@RequestParam Long classId) {
 //        初始化
         List<User> studentUserList = new ArrayList<>();
         List<User> teacherUserList = new ArrayList<>();

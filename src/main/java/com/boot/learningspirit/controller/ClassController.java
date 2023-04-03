@@ -59,9 +59,15 @@ public class ClassController {
     @PostMapping("saveOrUpdateClass")
     public Result saveOrUpdateClass(@RequestBody BanJi banJi) {
         if (banJi.getClassId() == null) {
-            banJi.setClassId(SnowFlakeUtil.getNextId());
+            Long id = SnowFlakeUtil.getNextId();
+            banJi.setClassId(id);
             banJi.setClassCreateTime(LocalDateTime.now());
             banJi.setClassCreator(banJi.getClassAdmin());
+            ClassMember classMember = new ClassMember();
+            classMember.setClassId(id);
+            classMember.setOpenId(banJi.getClassAdmin());
+            classMember.setType("teacher");
+            classMemberService.save(classMember);
         }
         if (classService.saveOrUpdate(banJi)) {
             return Result.success();

@@ -235,10 +235,10 @@ public class QuestionBankController {
      * @Date: 2023/4/1 16:00
      */
     @GetMapping("updateBankName")
-    public Result updateBankName(@RequestParam Long moduleId, @RequestParam String moduleName) {
+    public Result updateBankName(@RequestParam String moduleId, @RequestParam String module) {
         UpdateWrapper<QuestionBank> updateWrapper = new UpdateWrapper<>();
         updateWrapper
-                .set(!"".equals(moduleName) && moduleName != null, "module", moduleName)
+                .set(!"".equals(module) && module != null, "module", module)
                 .eq("module_id", moduleId);
         if (questionBankService.update(updateWrapper)) {
             return Result.success();
