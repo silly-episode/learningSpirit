@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.excel.ExcelListener;
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.dto.ClassPage;
 import com.boot.learningspirit.entity.QuestionBank;
 import com.boot.learningspirit.entity.Task;
+import com.boot.learningspirit.entity.User;
 import com.boot.learningspirit.service.QuestionBankService;
 import com.boot.learningspirit.service.TaskService;
 import com.boot.learningspirit.service.UserService;
@@ -89,9 +91,42 @@ public class QuestionBankController {
         list = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(()
                 -> new TreeSet<>(Comparator.comparing(QuestionBank::getModuleId))), ArrayList::new));
         for (QuestionBank bank : list) {
-            bank.setUploadName(userService.getById(bank.getUploadId()).getUserName());
+            User uploadUser = userService.getById(bank.getUploadId());
+            if (uploadUser != null) {
+                bank.setUploadName(uploadUser.getUserName());
+            }
         }
         return Result.success(list);
+    }
+
+
+    /**
+     * @param :
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: 获取题库列表
+     * @Date: 2023/3/21 11:30
+     */
+    @PostMapping("getBankList")
+    public Result getBankList(@RequestBody ClassPage bankSearch) {
+        Page<QuestionBank> pageInfo = new Page<>(bankSearch.getPageNum(), bankSearch.getPageSize());
+        QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
+        wrapper
+                .select("module_id , module ,question_create_time ,count(1) as bank_count")
+                .like(!"".equals(bankSearch.getQueryName()), "module", bankSearch.getQueryName())
+                .groupBy("module_id", "module", "question_create_time")
+                .orderByDesc("question_create_time");
+        questionBankService.page(pageInfo, wrapper);
+//        根据QuestionBank中的moduleId对list去重
+//        list = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(()
+//                -> new TreeSet<>(Comparator.comparing(QuestionBank::getModuleId))), ArrayList::new));
+        for (QuestionBank bank : pageInfo.getRecords()) {
+            User uploadUser = userService.getById(bank.getUploadId());
+            if (uploadUser != null) {
+                bank.setUploadName(uploadUser.getUserName());
+            }
+        }
+        return Result.success(pageInfo);
     }
 
     /**

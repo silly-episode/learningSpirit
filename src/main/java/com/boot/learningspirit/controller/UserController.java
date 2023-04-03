@@ -34,7 +34,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("user")
-@SuppressWarnings("all")
+//@SuppressWarnings("all")
 public class UserController {
 
     @Autowired
@@ -197,6 +197,7 @@ public class UserController {
         return Result.error("更新失败");
     }
 
+
     /**
      * @param userSearch:
      * @Return: Result
@@ -206,18 +207,20 @@ public class UserController {
      */
     @PostMapping("userSearch")
     public Result userSearch(@RequestBody ClassPage userSearch) {
+        System.out.println("123");
         String oftenParam = userSearch.getQueryName();
         Page<User> pageInfo = new Page<>(userSearch.getPageNum(), userSearch.getPageSize());
         QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
         wrapper
-                .and(null != oftenParam,
+                .and(!"".equals(oftenParam),
                         e -> e.like(User::getUserName, oftenParam)
-                                .or().like(User::getOpenId, oftenParam)
+                                .or().eq(User::getOpenId, oftenParam)
                 );
         userService.page(pageInfo, wrapper);
         for (User record : pageInfo.getRecords()) {
+            record.setBanJiList(new ArrayList<>(100));
 //            上次完成/发布的任务时间
             queryWrapper.clear();
             queryWrapper
@@ -247,15 +250,18 @@ public class UserController {
     }
 
     /**
-     * @param openId:
      * @Return: Result
      * @Author: DengYinzhe
      * @Description: TODO 删除用户
      * @Date: 2023/4/1 16:57
      */
-    @GetMapping("deleteUser")
-    public Result deleteUser(@RequestParam String openId, @RequestParam String type) {
-
+    @PostMapping("deleteUser")
+    public Result deleteUser(@RequestBody Map<String, String> map) {
+        String openId = map.get("id");
+        String type = map.get("type");
+        if (openId == null || type == null) {
+            return Result.error("参数错误");
+        }
         User user = userService.getById(openId);
         if (user == null) {
             return Result.error("用户不存在");
