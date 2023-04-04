@@ -7,11 +7,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.dto.ClassPage;
 import com.boot.learningspirit.dto.LoginLogSearchDto;
+import com.boot.learningspirit.dto.LoginMessage;
 import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
 import com.boot.learningspirit.utils.EncryptUtil;
 import com.boot.learningspirit.utils.GetUserInfoUtil;
 import com.boot.learningspirit.utils.JwtUtil;
+import com.boot.learningspirit.utils.SnowFlakeUtil;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -72,10 +74,6 @@ public class UserController {
             //获取sessionKey和openId
             String sessionKey = resultJson.get("session_key").toString();
             String openid = resultJson.get("openid").toString();
-//            System.out.println(openid);
-//            System.out.println("code:" + code);
-//            System.out.println("role:" + role);
-//            System.out.println("userName:" + userName);
             //生成自定义登录态session
             String session = null;
             Map<String, String> sessionMap = new HashMap<>();
@@ -210,13 +208,13 @@ public class UserController {
      */
     @PostMapping("userSearch")
     public Result userSearch(@RequestBody ClassPage userSearch) {
-        System.out.println("123");
         String oftenParam = userSearch.getQueryName();
         Page<User> pageInfo = new Page<>(userSearch.getPageNum(), userSearch.getPageSize());
         QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
         wrapper
+                .and(e -> e.eq(User::getRole, "teacher").or().eq(User::getRole, "student"))
                 .and(!"".equals(oftenParam),
                         e -> e.like(User::getUserName, oftenParam)
                                 .or().eq(User::getOpenId, oftenParam)
@@ -314,6 +312,113 @@ public class UserController {
         loginLogService.page(pageInfo, wrapper);
         return Result.success(pageInfo);
 
+    }
+
+
+    /**
+     * @param userSearch:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 分页搜索管理员列表
+     * @Date: 2023/4/4 13:31
+     */
+    @PostMapping("adminSearch")
+    public Result adminSearch(@RequestBody ClassPage userSearch) {
+        String oftenParam = userSearch.getQueryName();
+        Page<User> pageInfo = new Page<>(userSearch.getPageNum(), userSearch.getPageSize());
+        QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
+        wrapper
+                .eq(User::getRole, "admin")
+                .and(!"".equals(oftenParam),
+                        e -> e.like(User::getUserName, oftenParam)
+                                .or().eq(User::getOpenId, oftenParam)
+                );
+        userService.page(pageInfo, wrapper);
+        return Result.success(pageInfo);
+    }
+
+
+    /**
+     * @param admin:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 超级管理员添加管理员
+     * @Date: 2023/4/4 13:42
+     */
+    @PostMapping("addAdmin")
+    public Result addAdmin(@RequestBody User admin) {
+        admin.setOpenId(String.valueOf(SnowFlakeUtil.getNextId()));
+        admin.setRole("admin");
+        admin.setRegisterTime(LocalDateTime.now());
+        if (userService.save(admin)) {
+            return Result.success("创建成功");
+        } else {
+            return Result.error("用户名重复");
+        }
+    }
+
+    /**
+     * @param openId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 重置管理员密码
+     * @Date: 2023/4/4 13:47
+     */
+    @GetMapping("resetSubject")
+    public Result resetSubject(@RequestParam String openId) {
+
+        User admin = userService.getById(openId);
+        admin.setSubject("000000");
+        if (userService.updateById(admin)) {
+            return Result.success();
+        } else {
+            return Result.error("重置密码失败");
+        }
+    }
+
+    /**
+     * @param openId:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 管理员删除
+     * @Date: 2023/4/4 13:50
+     */
+    @GetMapping("deleteAdmin")
+    public Result deleteAdmin(@RequestParam String openId) {
+
+        if (userService.removeById(openId)) {
+            return Result.success();
+        } else {
+            return Result.error("删除失败");
+        }
+    }
+
+    /**
+     * @param loginMessage:
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: TODO 管理员登录
+     * @Date: 2023/4/4 14:15
+     */
+    @PostMapping("adminLogin")
+    public Result adminLogin(@RequestBody LoginMessage loginMessage) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_name", loginMessage.getUserName());
+        User admin = userService.getOne(queryWrapper);
+        if (admin == null) {
+            return Result.error("用户不存在");
+        }
+        if (admin.getSubject().equals(loginMessage.getSubject())) {
+            String token = jwtUtil.getToken(admin.getOpenId());
+            Map<String, String> map = new HashMap<>(2);
+            map.put("token", token);
+            map.put("role", admin.getRole());
+            return Result.success(map);
+        } else {
+            return Result.error("密码不正确");
+        }
     }
 
 

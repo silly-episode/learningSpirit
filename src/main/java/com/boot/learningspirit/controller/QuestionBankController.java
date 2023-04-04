@@ -113,7 +113,11 @@ public class QuestionBankController {
         QueryWrapper<QuestionBank> wrapper = new QueryWrapper<>();
         wrapper
                 .select("module_id , module ,question_create_time ,count(1) as bank_count")
-                .like(!"".equals(bankSearch.getQueryName()), "module", bankSearch.getQueryName())
+                .and(
+                        !"".equals(bankSearch.getQueryName()),
+                        e -> e.like("module", bankSearch.getQueryName())
+                                .eq("module_id", bankSearch.getQueryName())
+                )
                 .groupBy("module_id", "module", "question_create_time")
                 .orderByDesc("question_create_time");
         questionBankService.page(pageInfo, wrapper);
@@ -228,7 +232,6 @@ public class QuestionBankController {
 
     /**
      * @param moduleId:
-     * @param moduleName:
      * @Return: Result
      * @Author: DengYinzhe
      * @Description: TODO 更改题库名字
