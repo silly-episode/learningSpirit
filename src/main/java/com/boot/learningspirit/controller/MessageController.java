@@ -59,7 +59,7 @@ public class MessageController {
 //        获取所有的receive的消息
         Page<MessageReceive> pageInfo = new Page<>(pageNum, pageSize);
         QueryWrapper<MessageReceive> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("receive_open_id", openid);
+        queryWrapper.eq("receive_open_id", openid).orderByDesc("msg_receive_id");
         receiveService.page(pageInfo, queryWrapper);
 //        获取每个消息体
         List<RmDto> list = new ArrayList<>();

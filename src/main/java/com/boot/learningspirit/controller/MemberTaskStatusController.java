@@ -176,7 +176,7 @@ public class MemberTaskStatusController {
                     .set("msg", map.get("msg"));
         } else if ("tianbiao".equals(type)) {
             updateWrapper.set("answer_list", map.get("answerList"))
-                    .set("fileList", map.get("fileList"));
+                    .set("file_list", map.get("fileList"));
         } else if ("work".equals(type)) {
             updateWrapper
                     .set("file_list", map.get("fileList"))
@@ -186,9 +186,9 @@ public class MemberTaskStatusController {
         System.out.println(map.get("msg"));
 //    存入数据库
         if (memberTaskStatusService.update(updateWrapper)) {
-            return Result.success("录入成绩成功");
+            return Result.success("录入成功");
         } else {
-            return Result.error("录入成绩失败");
+            return Result.error("录入失败");
         }
     }
 
