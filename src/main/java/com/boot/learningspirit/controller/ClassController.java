@@ -12,6 +12,7 @@ import com.boot.learningspirit.entity.User;
 import com.boot.learningspirit.service.ClassMemberService;
 import com.boot.learningspirit.service.ClassService;
 import com.boot.learningspirit.service.UserService;
+import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
@@ -48,6 +49,8 @@ public class ClassController {
 
     @Resource
     private ClassMemberService classMemberService;
+    @Resource
+    private ActionLogUtils actionLogUtils;
 
     /**
      * @param banJi:
@@ -57,7 +60,7 @@ public class ClassController {
      * @Date: 2023/4/1 11:19
      */
     @PostMapping("saveOrUpdateClass")
-    public Result saveOrUpdateClass(@RequestBody BanJi banJi) {
+    public Result saveOrUpdateClass(@RequestBody BanJi banJi, HttpServletRequest request) {
         if (banJi.getClassId() == null) {
             Long id = SnowFlakeUtil.getNextId();
             banJi.setClassId(id);
@@ -70,6 +73,11 @@ public class ClassController {
             classMemberService.save(classMember);
         }
         if (classService.saveOrUpdate(banJi)) {
+            if (banJi.getClassId() == null) {
+                actionLogUtils.saveActionLog(request, actionLogUtils.INSERT, "新增了" + banJi.getClassName() + "的班级");
+            } else {
+                actionLogUtils.saveActionLog(request, actionLogUtils.UPDATE, "修改了" + banJi.getClassName() + "的班级");
+            }
             return Result.success();
         } else {
             return Result.error("修改失败");
@@ -98,6 +106,7 @@ public class ClassController {
         }
         return Result.success(pageInfo);
     }
+
 
     /*
      * @param classId:

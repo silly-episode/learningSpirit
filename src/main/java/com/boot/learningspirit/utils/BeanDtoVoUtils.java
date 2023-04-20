@@ -1,7 +1,11 @@
 package com.boot.learningspirit.utils;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.BeanUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Project: word
@@ -41,5 +45,60 @@ public class BeanDtoVoUtils {
         }
     }
 
+    /**
+     * @param oldList:
+     * @param v:
+     * @Return: List<V>
+     * @Author: DengYinzhe
+     * @Description: list转换
+     * @Date: 2023/3/27 13:04
+     */
+    public static <T, V> List<V> convertList(List<T> oldList, Class<V> v) {
+        try {
+            List<V> newList = new ArrayList<>();
+            for (T t : oldList) {
+                V temp = (V) BeanDtoVoUtils.convert(t, v.getDeclaredConstructor().newInstance().getClass());
+                newList.add(temp);
+            }
+            return newList;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * @param v:
+     * @Return: Page<V>
+     * @Author: DengYinzhe
+     * @Description: Page<Entity> 分页对象转 Page<Vo>  ( list 循环)
+     * @Date: 2023/2/2 20:33
+     */
+    public static <T, V> Page<V> pageVo(Page<T> oldPage, Class<V> v) {
+        try {
+            List<T> tList = oldPage.getRecords();
+            List<V> voList = new ArrayList<>();
+            for (T t : tList) {
+                V temp = (V) BeanDtoVoUtils.convert(t, v.getDeclaredConstructor().newInstance().getClass());
+                voList.add(temp);
+            }
+            Page<V> newPage = new Page<V>(
+                    oldPage.getCurrent(),
+                    oldPage.getSize(),
+                    oldPage.getTotal(),
+                    oldPage.searchCount());
+            newPage.setCountId(oldPage.getCountId());
+            newPage.setRecords(voList);
+            newPage.setMaxLimit(oldPage.getMaxLimit());
+            newPage.setPages(oldPage.getPages());
+            newPage.setOptimizeCountSql(oldPage.optimizeCountSql());
+            newPage.setOrders(oldPage.getOrders());
+            newPage.setOptimizeJoinOfCountSql(oldPage.optimizeJoinOfCountSql());
+            return newPage;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

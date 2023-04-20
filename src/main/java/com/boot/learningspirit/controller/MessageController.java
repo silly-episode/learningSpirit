@@ -9,6 +9,7 @@ import com.boot.learningspirit.dto.RmDto;
 import com.boot.learningspirit.entity.MessageReceive;
 import com.boot.learningspirit.service.MessageReceiveService;
 import com.boot.learningspirit.service.MessageService;
+import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,8 @@ public class MessageController {
     private MessageService messageService;
     @Resource
     private MessageReceiveService receiveService;
-
+    @Resource
+    private ActionLogUtils actionLogUtils;
 
     /**
      * @param pageSize:

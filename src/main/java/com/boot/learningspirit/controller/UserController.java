@@ -5,21 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
-import com.boot.learningspirit.dto.ClassPage;
-import com.boot.learningspirit.dto.LoginLogSearchDto;
-import com.boot.learningspirit.dto.LoginMessage;
+import com.boot.learningspirit.dto.*;
 import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
-import com.boot.learningspirit.utils.EncryptUtil;
-import com.boot.learningspirit.utils.GetUserInfoUtil;
-import com.boot.learningspirit.utils.JwtUtil;
-import com.boot.learningspirit.utils.SnowFlakeUtil;
+import com.boot.learningspirit.utils.*;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,7 +46,39 @@ public class UserController {
     @Resource
     private ClassService classService;
     @Resource
-    private LoginLogService loginLogService;
+    private ActionLogService actionLogService;
+    @Resource
+    private ActionLogUtils actionLogUtils;
+    @Resource
+    private MessageService messageService;
+
+    /**
+     * @Return: Result
+     * @Author: DengYinzhe
+     * @Description: 登录日志分页查询和日志导出
+     * @Date: 2023/3/27 10:03
+     */
+    @PostMapping("actionLog")
+    public Result<Page<ActionLog>> commonUserLog(@RequestBody ActionLogSearchDto searchDto) throws IOException {
+        /*查询信息*/
+        Page<ActionLog> pageInfo = new Page<>(searchDto.getPageNum(), searchDto.getPageSize());
+        LambdaQueryWrapper<ActionLog> wrapper = new LambdaQueryWrapper<>();
+        String oftenParam = searchDto.getSearch();
+        wrapper
+                .ge(null != searchDto.getBeginTime(), ActionLog::getActionTime, searchDto.getBeginTime())
+                .le(null != searchDto.getEndTime(), ActionLog::getActionTime, searchDto.getEndTime())
+                .eq(!searchDto.getActionType().isEmpty(), ActionLog::getActionKind, searchDto.getActionType())
+                .and(!oftenParam.isEmpty(),
+                        e -> e.like(ActionLog::getUserName, oftenParam)
+                                .or().like(ActionLog::getRemark, oftenParam)
+                                .or().eq(ActionLog::getOpenId, oftenParam)
+                )
+                .orderByDesc(ActionLog::getActionTime);
+        actionLogService.page(pageInfo, wrapper);
+        return Result.success(pageInfo);
+
+    }
+
 
     /**
      * @param code:
@@ -137,6 +165,10 @@ public class UserController {
         String token = request.getHeader("Authorization");
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
+        User userFromDb = userService.getById(openid);
+        if (userFromDb == null) {
+            return Result.error("用户不存在");
+        }
         user.setOpenId(openid);
         boolean result = userService.updateById(user);
         if (result) {
@@ -191,8 +223,9 @@ public class UserController {
      * @Date: 2023/4/1 15:46
      */
     @PostMapping("updateUser")
-    public Result updateUser(@RequestBody User user) {
+    public Result updateUser(@RequestBody User user, HttpServletRequest request) {
         if (userService.updateById(user)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.UPDATE, "更新了" + user.getUserName() + "的用户信息");
             return Result.success("更新成功");
         }
         return Result.error("更新失败");
@@ -245,19 +278,64 @@ public class UserController {
                 BanJi banJi = classService.getById(member.getClassId());
                 record.getBanJiList().add(banJi);
             }
-
         }
         return Result.success(pageInfo);
     }
 
+
+    @PostMapping("userExcel")
+    public void userExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        actionLogUtils.saveActionLog(request, actionLogUtils.EXPORT, "导出了管理员信息表");
+
+
+        QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
+        wrapper
+                .and(e -> e.eq(User::getRole, "teacher").or().eq(User::getRole, "student"));
+        List<User> userList = userService.list(wrapper);
+        for (User record : userList) {
+            record.setBanJiList(new ArrayList<>(100));
+//            上次完成/发布的任务时间
+            queryWrapper.clear();
+            queryWrapper
+                    .eq("open_id", record.getOpenId())
+                    .orderByDesc("status_time");
+            if ("student".equals(record.getRole())) {
+                queryWrapper.eq("status", "已完成");
+            }
+            List<MemberTaskStatus> list = new ArrayList<>();
+            list = memberTaskStatusService.list(queryWrapper);
+            if (list.size() > 0) {
+                record.setStatusTime(list.get(0).getStatusTime());
+            }
+//          已经完成或发布任务的数量
+            int taskCount = list.size();
+//          所在班级的信息
+            classMemberQueryWrapper.clear();
+            classMemberQueryWrapper.eq("open_id", record.getOpenId());
+            List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
+            for (ClassMember member : classMemberList) {
+                BanJi banJi = classService.getById(member.getClassId());
+                record.getBanJiList().add(banJi);
+            }
+        }
+
+        List<UserExcel> userExcelList = BeanDtoVoUtils.convertList(userList, UserExcel.class);
+
+        messageService.importExcel(response, "普通用户列表", UserExcel.class, userExcelList);
+
+    }
+
+
     /**
      * @Return: Result
      * @Author: DengYinzhe
-     * @Description: TODO 删除用户
+     * @Description: TODO 锁定用户
      * @Date: 2023/4/1 16:57
      */
     @PostMapping("deleteUser")
-    public Result deleteUser(@RequestBody Map<String, String> map) {
+    public Result deleteUser(@RequestBody Map<String, String> map, HttpServletRequest request) {
         String openId = map.get("id");
         String type = map.get("type");
         if (openId == null || type == null) {
@@ -272,8 +350,10 @@ public class UserController {
         updateWrapper.eq("open_id", openId);
 
         if ("lock".equals(type)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.UPDATE, "锁定了" + user.getUserName() + "的用户");
             updateWrapper.set("user_status", 1);
         } else {
+            actionLogUtils.saveActionLog(request, actionLogUtils.UPDATE, "解锁了" + user.getUserName() + "的用户");
             updateWrapper.set("user_status", 0);
         }
 
@@ -286,33 +366,7 @@ public class UserController {
     }
 
 
-    /**
-     * @param logSearch:
-     * @Return: Result
-     * @Author: DengYinzhe
-     * @Description: 登录日志分页查询和日志导出
-     * @Date: 2023/3/27 10:03
-     */
-    @PostMapping("actionLog")
-    public Result<Page<LoginLog>> commonUserLog(@RequestBody LoginLogSearchDto logSearch) throws IOException {
-        /*查询信息*/
-        Page<LoginLog> pageInfo = new Page<>(logSearch.getPageNum(), logSearch.getPageSize());
-        LambdaQueryWrapper<LoginLog> wrapper = new LambdaQueryWrapper<>();
-        String oftenParam = logSearch.getAccountOrTelOrNickNameOrUserId();
-        String userStatus;
-        wrapper
-                .ge(null != logSearch.getBeginTime(), LoginLog::getLoginTime, logSearch.getBeginTime())
-                .le(null != logSearch.getEndTime(), LoginLog::getLoginTime, logSearch.getEndTime())
-                .and(null != oftenParam,
-                        e -> e.like(LoginLog::getNickName, oftenParam)
-                                .or().eq(LoginLog::getLogRemark, oftenParam)
-                                .or().eq(LoginLog::getOpenId, oftenParam)
-                )
-                .orderByDesc(LoginLog::getLoginTime);
-        loginLogService.page(pageInfo, wrapper);
-        return Result.success(pageInfo);
 
-    }
 
 
     /**
@@ -326,9 +380,7 @@ public class UserController {
     public Result adminSearch(@RequestBody ClassPage userSearch) {
         String oftenParam = userSearch.getQueryName();
         Page<User> pageInfo = new Page<>(userSearch.getPageNum(), userSearch.getPageSize());
-        QueryWrapper<MemberTaskStatus> queryWrapper = new QueryWrapper<>();
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
         wrapper
                 .eq(User::getRole, "admin")
                 .and(!"".equals(oftenParam),
@@ -337,6 +389,29 @@ public class UserController {
                 );
         userService.page(pageInfo, wrapper);
         return Result.success(pageInfo);
+    }
+
+    /**
+     * @Return:
+     * @Author: DengYinzhe
+     * @Description: TODO 管理员导出
+     * @Date: 2023/4/20 13:52
+     */
+    @PostMapping("adminExport")
+    public void adminExport(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        actionLogUtils.saveActionLog(request, actionLogUtils.EXPORT, "导出了管理员信息表");
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("role", "admin");
+        List<User> list = userService.list(queryWrapper);
+        List<AdminExcel> exportList = BeanDtoVoUtils.convertList(list, AdminExcel.class);
+        for (AdminExcel adminExcel : exportList) {
+            if (adminExcel.getUserStatus() == 0) {
+                adminExcel.setStatus("正常");
+            } else {
+                adminExcel.setStatus("锁定");
+            }
+        }
+        messageService.importExcel(response, "管理员列表", AdminExcel.class, exportList);
     }
 
 
@@ -348,11 +423,19 @@ public class UserController {
      * @Date: 2023/4/4 13:42
      */
     @PostMapping("addAdmin")
-    public Result addAdmin(@RequestBody User admin) {
+    public Result addAdmin(@RequestBody User admin, HttpServletRequest request) {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("role", "admin").eq("user_name", admin.getUserName());
+        User adminFromDb = userService.getOne(queryWrapper);
+        if (adminFromDb != null) {
+            return Result.error("该账户已存在");
+        }
         admin.setOpenId(String.valueOf(SnowFlakeUtil.getNextId()));
         admin.setRole("admin");
         admin.setRegisterTime(LocalDateTime.now());
         if (userService.save(admin)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.INSERT, "添加了" + admin.getUserName() + "的管理员");
             return Result.success("创建成功");
         } else {
             return Result.error("用户名重复");
@@ -367,11 +450,11 @@ public class UserController {
      * @Date: 2023/4/4 13:47
      */
     @GetMapping("resetSubject")
-    public Result resetSubject(@RequestParam String openId) {
-
+    public Result resetSubject(@RequestParam String openId, HttpServletRequest request) {
         User admin = userService.getById(openId);
         admin.setSubject("000000");
         if (userService.updateById(admin)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.UPDATE, "重置了" + admin.getUserName() + "的密码为000000");
             return Result.success();
         } else {
             return Result.error("重置密码失败");
@@ -386,9 +469,13 @@ public class UserController {
      * @Date: 2023/4/4 13:50
      */
     @GetMapping("deleteAdmin")
-    public Result deleteAdmin(@RequestParam String openId) {
-
+    public Result deleteAdmin(@RequestParam String openId, HttpServletRequest request) {
+        User admin = userService.getById(openId);
+        if (admin == null) {
+            return Result.error("用户不存在");
+        }
         if (userService.removeById(openId)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.DELETE, "重置了" + admin.getUserName() + "的密码为000000");
             return Result.success();
         } else {
             return Result.error("删除失败");
@@ -403,15 +490,26 @@ public class UserController {
      * @Date: 2023/4/4 14:15
      */
     @PostMapping("adminLogin")
-    public Result adminLogin(@RequestBody LoginMessage loginMessage) {
+    public Result adminLogin(@RequestBody LoginMessage loginMessage) throws Exception {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_name", loginMessage.getUserName());
+        queryWrapper
+                .eq("user_name", loginMessage.getUserName())
+                .and(e ->
+                        e.eq("role", "admin")
+                                .or().eq("role", "super_admin"));
         User admin = userService.getOne(queryWrapper);
         if (admin == null) {
             return Result.error("用户不存在");
         }
         if (admin.getSubject().equals(loginMessage.getSubject())) {
-            String token = jwtUtil.getToken(admin.getOpenId());
+            String session = null;
+            Map<String, String> sessionMap = new HashMap<>();
+//        sessionMap.put("sessionKey", sessionKey);
+            sessionMap.put("openid", admin.getOpenId());
+            session = JSONObject.fromObject(sessionMap).toString();
+            EncryptUtil encryptUtil = new EncryptUtil();
+            session = encryptUtil.encrypt(session);
+            String token = jwtUtil.getToken(session);
             Map<String, String> map = new HashMap<>(2);
             map.put("token", token);
             map.put("role", admin.getRole());

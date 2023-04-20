@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.ActionLogDao">
+
+    <resultMap type="com.boot.learningspirit.entity.ActionLog" id="ActionLogMap">
+        <result property="actionId" column="action_id" jdbcType="INTEGER"/>
+        <result property="actionTime" column="action_time" jdbcType="TIMESTAMP"/>
+        <result property="openId" column="open_id" jdbcType="INTEGER"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
+        <result property="actionKind" column="action_kind" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="actionId" useGeneratedKeys="true">
+        insert into learningspirit.action_log(action_time, open_id, user_name, role, action_kind, remark)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.actionTime}, #{entity.openId}, #{entity.userName}, #{entity.role}, #{entity.actionKind},
+            #{entity.remark})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="actionId" useGeneratedKeys="true">
+        insert into learningspirit.action_log(action_time, open_id, user_name, role, action_kind, remark)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.actionTime}, #{entity.openId}, #{entity.userName}, #{entity.role}, #{entity.actionKind},
+            #{entity.remark})
+        </foreach>
+        on duplicate key update
+        action_time = values(action_time) , open_id = values(open_id) , user_name = values(user_name) , role =
+        values(role) , action_kind = values(action_kind) , remark = values(remark)
+    </insert>
+
+</mapper>
+

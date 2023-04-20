@@ -9,16 +9,14 @@ import java.time.LocalDateTime;
 /**
  * @Project: word
  * @Author: DengYinzhe
- * @Date: 2023/3/27 9:17
- * @FileName: LoginLogSearch
- * @Description: 登录日志查询的Dto
+ * @Date: 2023/4/13 10:39
+ * @FileName: actionLogSearchDto
+ * @Description:
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginLogSearchDto {
-
-
+public class ActionLogSearchDto {
     private Integer pageNum;
 
     private Integer pageSize;
@@ -26,10 +24,9 @@ public class LoginLogSearchDto {
     private LocalDateTime beginTime;
     /*结束时间*/
     private LocalDateTime endTime;
-    /*用户id、用户名、电话、邮箱*/
-    private String accountOrTelOrNickNameOrUserId;
-    //结果的描述
-    private String logRemark;
-    //角色
-    private String role;
+    /*账号、电话、用户名、用户id*/
+    private String search;
+    /*操作类型*/
+    private String actionType;
+
 }

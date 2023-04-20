@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.learningspirit.dao.OcrRecordDao">
+
+    <resultMap type="com.boot.learningspirit.entity.OcrRecord" id="OcrRecordMap">
+        <result property="recordId" column="record_id" jdbcType="INTEGER"/>
+        <result property="filePath" column="file_path" jdbcType="VARCHAR"/>
+        <result property="openId" column="open_id" jdbcType="VARCHAR"/>
+        <result property="recordTime" column="record_time" jdbcType="TIMESTAMP"/>
+        <result property="recordText" column="record_text" jdbcType="VARCHAR"/>
+        <result property="ocrType" column="ocr_type" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" keyProperty="recordId" useGeneratedKeys="true">
+        insert into learningspirit.ocr_record(file_path, open_id, record_time, record_text, ocr_type)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.filePath}, #{entity.openId}, #{entity.recordTime}, #{entity.recordText}, #{entity.ocrType})
+        </foreach>
+    </insert>
+    <!-- 批量插入或按主键更新 -->
+    <insert id="insertOrUpdateBatch" keyProperty="recordId" useGeneratedKeys="true">
+        insert into learningspirit.ocr_record(file_path, open_id, record_time, record_text, ocr_type)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.filePath}, #{entity.openId}, #{entity.recordTime}, #{entity.recordText}, #{entity.ocrType})
+        </foreach>
+        on duplicate key update
+        file_path = values(file_path) , open_id = values(open_id) , record_time = values(record_time) , record_text =
+        values(record_text) , ocr_type = values(ocr_type)
+    </insert>
+
+</mapper>
+

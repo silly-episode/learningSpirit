@@ -8,6 +8,7 @@ import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.dto.TeacherDto;
 import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
+import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
@@ -50,7 +51,8 @@ public class ClassMemberController {
     private UserService userService;
     @Resource
     private MessageReceiveService msgReceiveService;
-
+    @Resource
+    private ActionLogUtils actionLogUtils;
 
     /**
      * @param classId:

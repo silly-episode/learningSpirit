@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
+import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,8 @@ public class TaskController {
     /**
      * 服务对象
      */
+    @Resource
+    private ActionLogUtils actionLogUtils;
     @Resource
     private TaskService taskService;
     @Autowired

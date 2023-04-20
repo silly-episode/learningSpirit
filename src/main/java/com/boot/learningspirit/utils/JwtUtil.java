@@ -9,6 +9,7 @@ import net.sf.json.JSONObject;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
 /**
@@ -47,6 +48,24 @@ public class JwtUtil {
                 .compact();
     }
 
+
+    /**
+     * @Return:
+     * @Author: DengYinzhe
+     * @Description: TODO 获取userId
+     * @Date: 2023/4/13 11:15
+     */
+    public String getUserIdFromRequest(HttpServletRequest request) {
+        try {
+            //获取请求头token
+            String token = request.getHeader("Authorization");
+            //从token中获取openid
+            System.out.println(token);
+            return getOpenidFromToken(token);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     /**
      * 从token中获取自定义登录态session后解密获取openid

@@ -14,6 +14,7 @@ import com.boot.learningspirit.entity.User;
 import com.boot.learningspirit.service.QuestionBankService;
 import com.boot.learningspirit.service.TaskService;
 import com.boot.learningspirit.service.UserService;
+import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,8 @@ public class QuestionBankController {
     JwtUtil jwtUtil;
     @Resource
     private UserService userService;
+    @Resource
+    private ActionLogUtils actionLogUtils;
 
     /**
      * @param file:
@@ -62,6 +65,10 @@ public class QuestionBankController {
         //从token中获取openid
         String openid = jwtUtil.getOpenidFromToken(token);
 
+        User user = userService.getById(openid);
+        if (user == null) {
+            return Result.error("未登录或账户不存在，拒绝上传");
+        }
         String module = name.substring(0, name.lastIndexOf("."));
         Long moduleId = SnowFlakeUtil.getNextId();
         EasyExcel.read(
@@ -69,6 +76,9 @@ public class QuestionBankController {
                         QuestionBank.class,
                         new ExcelListener(questionBankService, moduleId, module, openid))
                 .sheet().doRead();
+        if ("admin".equals(user.getRole()) || "super_admin".equals(user.getRole())) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.INSERT_BATCH, "上传了" + module + "的题库");
+        }
         return Result.success();
     }
 
@@ -141,10 +151,11 @@ public class QuestionBankController {
      * @Date: 2023/3/27 11:41
      */
     @GetMapping("deleteBank")
-    public Result deleteBank(@RequestParam Long moduleId) {
+    public Result deleteBank(@RequestParam Long moduleId, HttpServletRequest request) {
         QueryWrapper<QuestionBank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("module_id", moduleId);
         if (questionBankService.remove(queryWrapper)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.DELETE, "删除了题库");
             return Result.success("删除成功");
         } else {
             return Result.error("删除失败");
@@ -238,12 +249,13 @@ public class QuestionBankController {
      * @Date: 2023/4/1 16:00
      */
     @GetMapping("updateBankName")
-    public Result updateBankName(@RequestParam String moduleId, @RequestParam String module) {
+    public Result updateBankName(@RequestParam String moduleId, @RequestParam String module, HttpServletRequest request) {
         UpdateWrapper<QuestionBank> updateWrapper = new UpdateWrapper<>();
         updateWrapper
                 .set(!"".equals(module) && module != null, "module", module)
                 .eq("module_id", moduleId);
         if (questionBankService.update(updateWrapper)) {
+            actionLogUtils.saveActionLog(request, actionLogUtils.UPDATE, "修改了" + module + "的名字");
             return Result.success();
         } else {
             return Result.error("更改失败");

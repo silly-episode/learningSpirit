@@ -7,6 +7,7 @@ import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.dto.GradeJsonDto;
 import com.boot.learningspirit.entity.*;
 import com.boot.learningspirit.service.*;
+import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.BeanDtoVoUtils;
 import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.SnowFlakeUtil;
@@ -48,6 +49,8 @@ public class MemberTaskStatusController {
     private QuestionBankService questionBankService;
     @Resource
     private MessageService msgService;
+    @Resource
+    private ActionLogUtils actionLogUtils;
 
     /**
      * @param taskId:

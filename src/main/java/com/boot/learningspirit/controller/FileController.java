@@ -1,17 +1,26 @@
 package com.boot.learningspirit.controller;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
+import com.boot.learningspirit.dto.ClassPage;
+import com.boot.learningspirit.entity.OcrRecord;
 import com.boot.learningspirit.entity.Task;
+import com.boot.learningspirit.service.OcrRecordService;
+import com.boot.learningspirit.utils.ActionLogUtils;
+import com.boot.learningspirit.utils.JwtUtil;
 import com.boot.learningspirit.utils.MinIOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 
 
 /**
@@ -23,20 +32,52 @@ import java.io.InputStream;
 @RestController
 public class FileController {
 
-
+    @Resource
+    private ActionLogUtils actionLogUtils;
     @Resource
     private MinIOUtils minioUtils;
-
-    @GetMapping("a")
-    public String test() {
-        return "Test";
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Resource
+    private OcrRecordService ocrRecordService;
 
     @PostMapping("test")
     public Result AAA(@RequestBody Task a) {
         System.out.println(a.getQNumber());
         return Result.success(a.getQNumber());
     }
+
+
+    /**
+     * @Return:
+     * @Author: DengYinzhe
+     * @Description: TODO 记录Ocr
+     * @Date: 2023/4/20 14:38
+     */
+    @PostMapping("insertOcrRecord")
+    public Result insertOcrRecord(OcrRecord ocrRecord, HttpServletRequest request) {
+        String openId = jwtUtil.getUserIdFromRequest(request);
+        ocrRecord.setOpenId(openId).setRecordTime(LocalDateTime.now());
+        if (ocrRecordService.save(ocrRecord)) {
+            return Result.success("插入成功");
+        } else {
+            return Result.error("插入失败");
+        }
+    }
+
+    /**
+     * @Return:
+     * @Author: DengYinzhe
+     * @Description: TODO 分页查询ocrRecord
+     * @Date: 2023/4/20 14:54
+     */
+    @PostMapping("ocrRecordPage")
+    public Result ocrRecordPage(@RequestBody ClassPage classPage) {
+        Page<OcrRecord> pageInfo = new Page<>(classPage.getPageNum(), classPage.getPageSize());
+        ocrRecordService.page(pageInfo);
+        return Result.success(pageInfo);
+    }
+
 
     /**
      * @param file:
