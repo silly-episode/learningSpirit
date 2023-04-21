@@ -6,7 +6,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class test2 {
-    private static final long CHARGING_DURATION = 36000; // 充电时长，单位为毫秒
+    private static final long CHARGING_DURATION = 10000; // 充电时长，单位为毫秒
     private Map<String, Timer> timerMap; // 用于存储用户ID与对应的定时器
     // 可以使用数据库或其他持久化方式替代简单的Map来存储充电任务信息
 

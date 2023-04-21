@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("task")
+@SuppressWarnings("all")
 public class TaskController {
     /**
      * 服务对象
@@ -51,6 +52,138 @@ public class TaskController {
     @Resource
     private MessageService msgService;
 
+
+    private Map<Long, Timer> timerMap = new HashMap<>();
+
+    //    发布
+    public void stopCharging(Long key, Task task, String openid, Map<String, String> map) {
+
+        //        获取班级Id的list
+        List<String> banJiList = Arrays.asList(task.getReceiveClassList().split(","));
+
+//        查询班级下的成员id的list
+        QueryWrapper<ClassMember> classMemberQueryWrapper = new QueryWrapper<>();
+        classMemberQueryWrapper.in("class_id", banJiList);
+        List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
+
+
+        //生成消息
+        Long msgId = SnowFlakeUtil.getNextId();
+        Message msg = new Message()
+                .setMsgId(msgId)
+                .setMsgContent(userService.getById(openid).getUserName() + "(老师)发布了《" + task.getTitle() + "》任务，快去完成吧！")
+                .setMsgTitle("任务通知")
+                .setMsgType(3)
+                .setTaskId(task.getTaskId())
+                .setTaskType(map.get("type"))
+                .setMessageCreateTime(LocalDateTime.now());
+        List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+
+//        组成最后的要添加的数据（消息和任务完成情况）
+        List<MemberTaskStatus> memberTaskStatusList = new ArrayList<>(classMemberList.size());
+        for (ClassMember classMember : classMemberList) {
+            memberTaskStatusList.add(
+                    new MemberTaskStatus(
+                            task.getTaskId(), classMember.getOpenId(),
+                            LocalDateTime.now(), classMember.getClassId(), task.getType()));
+
+            if ("student".equals(classMember.getType())) {
+                MessageReceive msgReceive = new MessageReceive()
+                        .setMsgId(msgId)
+                        .setReceiveOpenId(classMember.getOpenId());
+                msgReceiveList.add(msgReceive);
+            }
+
+        }
+
+        memberTaskStatusService.saveBatch(memberTaskStatusList);
+        msgService.messageSave(msg, msgReceiveList);
+
+
+        // 取消定时任务
+        Timer timer = timerMap.get(key);
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+            timerMap.remove(key); // 从Map中移除定时器
+        }
+    }
+
+    // 启动延时任务
+    public void startCharging(LocalDateTime fixTime, Task task, String openid, Map<String, String> map) {
+
+        long key = SnowFlakeUtil.getNextId();
+
+        long millisecondsDiff = java.time.Duration.between(LocalDateTime.now(), fixTime).toMillis();
+
+        // 创建定时器
+        Timer timer = new Timer();
+        // 定义定时任务
+        TimerTask stopChargingTask = new TimerTask() {
+            @Override
+            public void run() {
+                stopCharging(key, task, openid, map); // 充电时长到达后停止充电
+            }
+        };
+        // 启动定时任务，设置定时时长
+        timer.schedule(stopChargingTask, millisecondsDiff);
+
+        // 将定时器添加到Map中，以便后续管理
+        timerMap.put(key, timer);
+    }
+
+    //监控截至时间
+    public void startDeadLine(LocalDateTime deadLine, Task task, String openid) {
+
+        long key = SnowFlakeUtil.getNextId();
+
+        long millisecondsDiff = java.time.Duration.between(LocalDateTime.now(), deadLine).toMillis();
+
+        // 创建定时器
+        Timer timer = new Timer();
+        // 定义定时任务
+        TimerTask stopChargingTask = new TimerTask() {
+            @Override
+            public void run() {
+                stopDeadLine(key, task, openid);
+            }
+        };
+        // 启动定时任务，设置定时时长
+        timer.schedule(stopChargingTask, millisecondsDiff);
+
+        // 将定时器添加到Map中，以便后续管理
+        timerMap.put(key, timer);
+    }
+
+    public void stopDeadLine(Long key, Task task, String openid) {
+        /*发送消息*/
+        //生成消息
+        Long msgId = SnowFlakeUtil.getNextId();
+        Message msg = new Message()
+                .setMsgId(msgId)
+                .setMsgContent("《" + task.getTitle() + "》任务已截止，快去查看吧！")
+                .setMsgTitle("任务通知")
+                .setMsgType(10)
+                .setTaskId(task.getTaskId())
+                .setTaskType(task.getType())
+                .setMessageCreateTime(LocalDateTime.now());
+
+        List<MessageReceive> msgReceiveList = new ArrayList<>(10);
+        MessageReceive msgReceive = new MessageReceive()
+                .setMsgId(msgId)
+                .setReceiveOpenId(openid);
+        msgReceiveList.add(msgReceive);
+        msgService.messageSave(msg, msgReceiveList);
+
+        // 取消定时任务
+        Timer timer = timerMap.get(key);
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+            timerMap.remove(key); // 从Map中移除定时器
+        }
+    }
+
     /**
      * @param map:
      * @Return: Result
@@ -62,11 +195,9 @@ public class TaskController {
     public Result create(
             @RequestBody Map<String, String> map,
             HttpServletRequest request) {
-        System.out.println("-----------------------");
-        System.out.println(map.get("taskId"));
+
         try {
             Task task = new Task();
-
             if (map.get("qNumber") != null) {
                 task.setQNumber(Integer.valueOf(map.get("qNumber")));
             }
@@ -78,23 +209,16 @@ public class TaskController {
                 task.setFixTime(LocalDateTime.parse(map.get("fixTime"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             }
             task.setFileList(map.get("fileList"));
-
-
             if ((map.get("isDraft") != null)) {
                 task.setIsDraft(Boolean.valueOf(map.get("isDraft")));
             }
-
-
             if (map.get("moduleId") != null) {
                 task.setModuleId(Long.valueOf(map.get("moduleId")));
             }
-
             task.setQuestionList(map.get("questionList"));
-
             if (map.get("random") != null) {
                 task.setRandom(Boolean.valueOf(map.get("random")));
             }
-
             task.setReceiveClassList(map.get("receiveClassList"));
             task.setTitle(map.get("title"));
             task.setType(map.get("type"));
@@ -110,6 +234,7 @@ public class TaskController {
             if (task.getFixTime() == null) {
                 task.setPublishTime(now);
             } else {
+                /*这里为定时发布*/
                 task.setPublishTime(task.getFixTime());
             }
 
@@ -122,11 +247,20 @@ public class TaskController {
             }
 
 
-            System.out.println(task.toString());
             taskService.saveOrUpdate(task);
             if (task.getIsDraft()) {
                 return Result.success("保存草稿成功");
             }
+
+            /*下面是不是草稿所做的事情*/
+            /*如果是延时发布*/
+            if (task.getFixTime() != null) {
+                startCharging(task.getFixTime(), task, openid, map);
+                return Result.error("发布定时任务成功");
+            }
+
+            /*监控DeadLIne*/
+            startDeadLine(task.getDeadline(), task, openid);
 
 
 //        获取班级Id的list
@@ -137,9 +271,7 @@ public class TaskController {
             classMemberQueryWrapper.in("class_id", banJiList);
             List<ClassMember> classMemberList = classMemberService.list(classMemberQueryWrapper);
 
-            System.out.println("++++++++++++++++++++++");
-            System.out.println(classMemberList.size());
-            System.out.println(classMemberList.toString());
+
             //生成消息
             Long msgId = SnowFlakeUtil.getNextId();
             Message msg = new Message()
@@ -246,10 +378,7 @@ public class TaskController {
         if ("全部".equals(status)) {
             status = null;
         }
-//        System.out.println(type);
-//        System.out.println(title);
-//        System.out.println(status);
-//        System.out.println(isDraft);
+
 
         //查询该用户加入的班级id
         QueryWrapper<ClassMember> wrapper = new QueryWrapper<>();
@@ -297,8 +426,7 @@ public class TaskController {
                     -> new TreeSet<>(Comparator.comparing(Task::getTaskId))), ArrayList::new));
         }
 
-        System.out.println("orginTaskList: " + taskList.toString());
-        System.out.println(taskList.size());
+
 //        班级信息
         QueryWrapper<BanJi> banJiWrapper = new QueryWrapper<>();
         banJiWrapper.select("class_id,class_name,joined,teacher_count").in("class_id", classIdList);
@@ -321,7 +449,6 @@ public class TaskController {
         }
 
 
-        System.out.println("classIdList: " + classIdList);
         //        个人完成情况
         memberTaskStatusQueryWrapper.clear();
         memberTaskStatusQueryWrapper
@@ -366,21 +493,15 @@ public class TaskController {
                 }
             }
         }
-        System.out.println("taskList: " + taskList);
-        System.out.println(taskList.size());
+
 //        删除status为null的任务
         for (int i = 0; i < taskList.size(); i++) {
-            System.out.println("===============");
-            System.out.println(taskList.get(i).getTaskId());
-            System.out.println(taskList.get(i).getStatus());
-            System.out.println(taskList.get(i).getIsDraft());
-            System.out.println(taskList.get(i).getStatus() == null && !taskList.get(i).getIsDraft());
             if (taskList.get(i).getStatus() == null && !taskList.get(i).getIsDraft()) {
                 taskList.remove(i);
                 i--;
             }
         }
-        System.out.println(taskList.size());
+
         return Result.success(taskList);
     }
 

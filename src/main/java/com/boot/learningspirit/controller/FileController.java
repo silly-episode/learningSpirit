@@ -1,11 +1,12 @@
 package com.boot.learningspirit.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.boot.learningspirit.common.result.Result;
 import com.boot.learningspirit.dto.ClassPage;
 import com.boot.learningspirit.entity.OcrRecord;
-import com.boot.learningspirit.entity.Task;
+import com.boot.learningspirit.service.MessageService;
 import com.boot.learningspirit.service.OcrRecordService;
 import com.boot.learningspirit.utils.ActionLogUtils;
 import com.boot.learningspirit.utils.JwtUtil;
@@ -40,11 +41,13 @@ public class FileController {
     private JwtUtil jwtUtil;
     @Resource
     private OcrRecordService ocrRecordService;
+    @Resource
+    private MessageService messageService;
 
-    @PostMapping("test")
-    public Result AAA(@RequestBody Task a) {
-        System.out.println(a.getQNumber());
-        return Result.success(a.getQNumber());
+
+    @PostMapping("testAAA")
+    public void AAA() {
+        messageService.test();
     }
 
 
@@ -55,7 +58,7 @@ public class FileController {
      * @Date: 2023/4/20 14:38
      */
     @PostMapping("insertOcrRecord")
-    public Result insertOcrRecord(OcrRecord ocrRecord, HttpServletRequest request) {
+    public Result insertOcrRecord(@RequestBody OcrRecord ocrRecord, HttpServletRequest request) {
         String openId = jwtUtil.getUserIdFromRequest(request);
         ocrRecord.setOpenId(openId).setRecordTime(LocalDateTime.now());
         if (ocrRecordService.save(ocrRecord)) {
@@ -74,7 +77,9 @@ public class FileController {
     @PostMapping("ocrRecordPage")
     public Result ocrRecordPage(@RequestBody ClassPage classPage) {
         Page<OcrRecord> pageInfo = new Page<>(classPage.getPageNum(), classPage.getPageSize());
-        ocrRecordService.page(pageInfo);
+        QueryWrapper<OcrRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("record_time");
+        ocrRecordService.page(pageInfo, queryWrapper);
         return Result.success(pageInfo);
     }
 

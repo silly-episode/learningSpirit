@@ -9,6 +9,7 @@ import com.boot.learningspirit.entity.Message;
 import com.boot.learningspirit.entity.MessageReceive;
 import com.boot.learningspirit.service.MessageService;
 import com.boot.learningspirit.utils.JsonUtils;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,19 @@ public class MessageServiceImpl extends ServiceImpl<MessageDao, Message> impleme
         } else {
             return false;
         }
+    }
+
+
+    @Override
+    @Scheduled(cron = "59 28 10 21 4 ?")
+    public void test() {
+        System.out.println(1);
+        int count = 0;
+        count++;
+        if (count != 0) {
+            System.out.println("++++++++++++++=123123+++++++++++++++++++++");
+        }
+
     }
 }
 

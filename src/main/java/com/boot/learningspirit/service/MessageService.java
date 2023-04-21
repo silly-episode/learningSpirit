@@ -21,5 +21,8 @@ public interface MessageService extends IService<Message> {
 
     <V> void importExcel(HttpServletResponse response, String fileName, Class<V> v, List<V> list) throws IOException;
 
+
+    void test();
+
 }
 
